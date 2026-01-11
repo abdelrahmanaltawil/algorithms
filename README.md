@@ -10,16 +10,16 @@ The project structure is strictly organized by the **functional intent** each al
 |----------|-------------|
 | [**Approximation**](./Approximation/) | Least squares, Chebyshev polynomials, splines, regularized regression |
 | [**Clustering**](./Clustering/) | K-means clustering algorithm |
-| [**Differential Equations**](./Differential Equations/) | Euler method, Runge-Kutta, Forward-Backward Sweep |
+| [**Differential Equations**](./Differential%20Equations/) | Euler method, Runge-Kutta, Forward-Backward Sweep |
 | [**Fractals**](./Fractals/) | Mandelbrot set visualization |
 | [**Interpolation**](./Interpolation/) | Lagrange polynomial interpolation |
-| [**Linear Algebra**](./Linear Algebra/) | Direct (Gaussian, LU, Cholesky) and Iterative (Jacobi, Gauss-Seidel, SOR, CG) solvers |
-| [**Numerical Differentiation**](./Numerical Differentiation/) | Finite difference schemes (Forward, Backward, Central) |
-| [**Numerical Integration**](./Numerical Integration/) | Rectangular methods (Left, Right, Midpoint rules) |
+| [**Linear Algebra**](./Linear%20Algebra/) | Direct (Gaussian, LU, Cholesky) and Iterative (Jacobi, Gauss-Seidel, SOR, CG) solvers |
+| [**Numerical Differentiation**](./Numerical%20Differentiation/) | Finite difference schemes (Forward, Backward, Central) |
+| [**Numerical Integration**](./Numerical%20Integration/) | Rectangular methods (Left, Right, Midpoint rules) |
 | [**Optimization**](./Optimization/) | Gradient descent, Hill climbing, Simulated annealing, Dynamic programming, Evolutionary algorithms |
-| [**Random Number Generators**](./Random Number Generators/) | Pseudo-random (LCG) and Quasi-random (Additive Recurrence) generators |
+| [**Random Number Generators**](./Random%20Number%20Generators/) | Pseudo-random (LCG) and Quasi-random (Additive Recurrence) generators |
 | [**Estimation**](./Estimation/) | Maximum Likelihood Estimation |
-| [**Stochastic Processes**](./Stochastic Processes/) | Brownian motion, Markov chains, Random walks, SDEs (SIRD Model) |
+| [**Stochastic Processes**](./Stochastic%20Processes/) | Brownian motion, Markov chains, Random walks, SDEs (SIRD Model) |
 
 ## 🎯 Philosophy
 
