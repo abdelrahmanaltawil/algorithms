@@ -11,12 +11,13 @@ Personal implementations of algorithms of interest to me.
 | [**differential-equations**](./differential-equations/) | Euler method, Runge-Kutta, Forward-Backward Sweep |
 | [**fractals**](./fractals/) | Mandelbrot set visualization |
 | [**interpolation**](./interpolation/) | Lagrange polynomial interpolation |
+| [**linear-algebra**](./linear-algebra/) | Direct (Gaussian, LU, Cholesky) and Iterative (Jacobi, Gauss-Seidel, SOR, CG) solvers |
 | [**numerical-differentiation**](./numerical-differentiation/) | Finite difference schemes (Forward, Backward, Central) |
 | [**numerical-integration**](./numerical-integration/) | Rectangular methods (Left, Right, Midpoint rules) |
 | [**optimization**](./optimization/) | Gradient descent, Hill climbing, Simulated annealing, Dynamic programming, Evolutionary algorithms |
 | [**random-number-generators**](./random-number-generators/) | Pseudo-random (LCG) and Quasi-random (Additive Recurrence) generators |
 | [**estimation**](./estimation/) | Maximum Likelihood Estimation |
-| [**stochastic-processes**](./stochastic-processes/) | Brownian motion, Markov chains, Random walks |
+| [**stochastic-processes**](./stochastic-processes/) | Brownian motion, Markov chains, Random walks, SDEs (SIRD Model) |
 
 ## 🎯 Philosophy
 
