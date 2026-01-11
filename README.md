@@ -4,6 +4,8 @@ Personal implementations of algorithms of interest to me.
 
 ## 📚 Categories
 
+The project structure is strictly organized by the **functional intent** each algorithm plays. instead of grouping by complexity or field, algorithms are categorized by their functional purpose. This functional-based organization highlights the specific utility of each method.
+
 | Category | Description |
 |----------|-------------|
 | [**approximation**](./approximation/) | Least squares, Chebyshev polynomials, splines, regularized regression |
