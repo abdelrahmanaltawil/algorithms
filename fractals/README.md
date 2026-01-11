@@ -20,6 +20,6 @@ remains bounded when starting from $z_0 = 0$.
 
 The notebook generates beautiful visualizations by coloring points based on their escape velocity (number of iterations before divergence).
 
-## 📖 Further Reading
+## 📖 Further Reading 
 
 - [Wikipedia: Mandelbrot set](https://en.wikipedia.org/wiki/Mandelbrot_set)

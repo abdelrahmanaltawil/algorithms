@@ -18,7 +18,7 @@ Uses:
 - **Mutation**: Random changes for diversity
 
 ### Evolution Strategies
-Focus on:
+Focus on: 
 - Continuous parameter optimization
 - Self-adaptive mutation rates
 - (μ, λ) and (μ + λ) selection schemes
