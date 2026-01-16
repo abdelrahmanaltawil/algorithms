@@ -13,30 +13,13 @@ from helpers import (
 
 # Load configuration
 script_dir = os.path.dirname(os.path.abspath(__file__))
-CONFIG = load_config(os.path.join(script_dir, 'inputs.yaml'))
-GLOBAL_CONF = CONFIG['global']
-config.background_color = GLOBAL_CONF['background_color']
-config.media_dir = os.path.join(script_dir, "media")
-
-# Set Resolution (as previously requested)
-quality = GLOBAL_CONF.get('quality', 'low')
-if quality == 'high':
-    config.pixel_height = 2160
-    config.pixel_width = 3840
-    config.frame_rate = 60
-elif quality == 'medium':
-    config.pixel_height = 1080
-    config.pixel_width = 1920
-    config.frame_rate = 60
-elif quality == 'low':
-    config.pixel_height = 480
-    config.pixel_width = 854
-    config.frame_rate = 30
+INPUTS = load_config(os.path.join(script_dir, 'inputs.yaml'))
+GLOBAL_INPUTS = INPUTS['global']
 
 
 class OpenChannelProfile(Scene):
     def construct(self):
-        cfg = CONFIG['scenes']['open_channel']
+        cfg = INPUTS['scenes']['open_channel']
         geom = cfg['geometry']
         vis = cfg['visuals']
         
@@ -105,7 +88,7 @@ class OpenChannelProfile(Scene):
             velocity_func=vel_func,
             y_range=[y_bed, y_surface],
             x_profile=0,
-            v_viz_scale=GLOBAL_CONF['animation']['viz_scale_factor'],
+            v_viz_scale=GLOBAL_INPUTS['animation']['viz_scale_factor'],
             v_max=v_max
         )
         profile_curve, profile_fill, arrows, v_label = profile_group
@@ -118,21 +101,21 @@ class OpenChannelProfile(Scene):
         self.play(Create(hgl_line), FadeIn(water_level_symbol))
 
         # Particle System
-        particles = create_particles(axes, vel_func, [bed_x_start, bed_x_end], [y_bed, y_surface], slope_angle, GLOBAL_CONF['animation']['particle_count'])
+        particles = create_particles(axes, vel_func, [bed_x_start, bed_x_end], [y_bed, y_surface], slope_angle, GLOBAL_INPUTS['animation']['particle_count'])
         self.add(particles)
         
         updater = get_particle_updater(axes, particles, vel_func, [bed_x_start, bed_x_end], slope_angle)
         particles.add_updater(updater)
         
-        self.wait(GLOBAL_CONF['animation']['wait_time_before_particles'])
+        self.wait(GLOBAL_INPUTS['animation']['wait_time_before_particles'])
         self.play(Create(arrows), Create(profile_curve), FadeIn(profile_fill), Write(v_label))
-        self.wait(GLOBAL_CONF['animation']['wait_time_after_particles_start'])
+        self.wait(GLOBAL_INPUTS['animation']['wait_time_after_particles_start'])
         particles.remove_updater(updater)
 
 
 class GravityPipeProfile(Scene):
     def construct(self):
-        cfg = CONFIG['scenes']['gravity_pipe']
+        cfg = INPUTS['scenes']['gravity_pipe']
         geom = cfg['geometry']
         vis = cfg['visuals']
         
@@ -187,7 +170,7 @@ class GravityPipeProfile(Scene):
             velocity_func=vel_func,
             y_range=[y_inv, y_surf],
             x_profile=0,
-            v_viz_scale=GLOBAL_CONF['animation']['viz_scale_factor'],
+            v_viz_scale=GLOBAL_INPUTS['animation']['viz_scale_factor'],
             v_max=v_max
         )
         profile_curve, profile_fill, arrows, v_label = profile_group
@@ -200,21 +183,21 @@ class GravityPipeProfile(Scene):
         self.play(Create(hgl_line))
 
         # Particles
-        particles = create_particles(axes, vel_func, [x_start, x_end], [y_inv, y_surf], slope_angle, GLOBAL_CONF['animation']['particle_count'])
+        particles = create_particles(axes, vel_func, [x_start, x_end], [y_inv, y_surf], slope_angle, GLOBAL_INPUTS['animation']['particle_count'])
         self.add(particles)
         
         updater = get_particle_updater(axes, particles, vel_func, [x_start, x_end], slope_angle)
         particles.add_updater(updater)
         
-        self.wait(GLOBAL_CONF['animation']['wait_time_before_particles'])
+        self.wait(GLOBAL_INPUTS['animation']['wait_time_before_particles'])
         self.play(Create(arrows), Create(profile_curve), FadeIn(profile_fill), Write(v_label))
-        self.wait(GLOBAL_CONF['animation']['wait_time_after_particles_start'])
+        self.wait(GLOBAL_INPUTS['animation']['wait_time_after_particles_start'])
         particles.remove_updater(updater)
 
 
 class ClosedPipeProfile(Scene):
     def construct(self):
-        cfg = CONFIG['scenes']['closed_pipe']
+        cfg = INPUTS['scenes']['closed_pipe']
         geom = cfg['geometry']
         vis = cfg['visuals']
         
@@ -263,7 +246,7 @@ class ClosedPipeProfile(Scene):
             velocity_func=vel_func,
             y_range=[y_bot, y_top],
             x_profile=0,
-            v_viz_scale=GLOBAL_CONF['animation']['closed_pipe_viz_scale'],
+            v_viz_scale=GLOBAL_INPUTS['animation']['closed_pipe_viz_scale'],
             v_max=v_max
         )
         profile_curve, profile_fill, arrows, v_label = profile_group
@@ -275,13 +258,13 @@ class ClosedPipeProfile(Scene):
         self.play(Create(wall_bot), Create(wall_top), FadeIn(water_poly), Write(labels))
         
         # Particles
-        particles = create_particles(axes, vel_func, [x_start, x_end], [y_bot, y_top], slope_angle, GLOBAL_CONF['animation']['particle_count'])
+        particles = create_particles(axes, vel_func, [x_start, x_end], [y_bot, y_top], slope_angle, GLOBAL_INPUTS['animation']['particle_count'])
         self.add(particles)
         
         updater = get_particle_updater(axes, particles, vel_func, [x_start, x_end], slope_angle)
         particles.add_updater(updater)
         
-        self.wait(GLOBAL_CONF['animation']['wait_time_before_particles'])
+        self.wait(GLOBAL_INPUTS['animation']['wait_time_before_particles'])
         self.play(Create(arrows), Create(profile_curve), FadeIn(profile_fill), Write(v_label))
-        self.wait(GLOBAL_CONF['animation']['wait_time_after_particles_start'])
+        self.wait(GLOBAL_INPUTS['animation']['wait_time_after_particles_start'])
         particles.remove_updater(updater)

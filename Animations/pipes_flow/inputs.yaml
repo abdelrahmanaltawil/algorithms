@@ -48,8 +48,6 @@ scenes:
       wall_stroke_width: 20
 
 global:
-  quality: "high"
-  background_color: "WHITE"
   animation:
     viz_scale_factor: 0.5
     closed_pipe_viz_scale: 0.6
