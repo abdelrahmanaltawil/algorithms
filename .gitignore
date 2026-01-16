@@ -134,10 +134,10 @@ dmypy.json
 
 # animantions media except .mp4 files
 # Ignore all files in any media directory
-**/media/**/*
+**/Animations/**/results/**/*
 # Un-ignore the directories themselves (required to search inside them)
-!**/media/**/
+!**/Animations/**/results/**/
 # Re-include only .mp4 files
-!**/media/**/*.mp4
+!**/Animations/**/results/**/*.mp4
 # Ignore partial movie files
 **/partial_movie_files/

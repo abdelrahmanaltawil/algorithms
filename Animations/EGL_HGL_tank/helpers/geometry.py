@@ -69,14 +69,12 @@ def create_components(plane, cfg, p3_height=None):
         cfg['tanks']['tank1']['width'],
         cfg['tanks']['tank1']['height'],
         cfg['tanks']['tank1']['position'],
-        DL
     )
     t2 = create_tank(
         plane,
         cfg['tanks']['tank2']['width'],
         cfg['tanks']['tank2']['height'],
         cfg['tanks']['tank2']['position'],
-        UR
     )
     
     # Pipes
@@ -129,11 +127,11 @@ def create_walls(fluid):
         VMobject: Styled wall outline.
     """
     walls = fluid.copy()
-    walls.set_style(fill_opacity=0, stroke_color=BLACK, stroke_width=4)
+    walls.set_style(fill_opacity=0, stroke_color=BLACK, stroke_width=14)
     return walls
 
 
-def create_tank_extensions(plane, tank_cfg, position_edge, bg_color, ext_length=0.5):
+def create_tank_extensions(plane, tank_cfg, position_edge, bg_color, ext_length=3):
     """Creates extended walls and mask for open-top tank.
     
     Args:
@@ -154,8 +152,8 @@ def create_tank_extensions(plane, tank_cfg, position_edge, bg_color, ext_length=
     ul = temp.get_corner(UL)
     ur = temp.get_corner(UR)
     
-    mask = Line(ul, ur, color=bg_color, stroke_width=8)
-    wall_l = Line(ul - UP*0.1, ul + UP * ext_length, color=BLACK, stroke_width=4)
-    wall_r = Line(ur - UP*0.1, ur + UP * ext_length, color=BLACK, stroke_width=4)
+    mask = Line(ul, ur, color=WHITE, stroke_width=25)
+    wall_l = Line(ul - UP*0.1, ul + UP * ext_length, color=BLACK, stroke_width=14)
+    wall_r = Line(ur - UP*0.1, ur + UP * ext_length, color=BLACK, stroke_width=14)
     
     return mask, wall_l, wall_r

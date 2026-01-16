@@ -1,82 +1,67 @@
 scenes:
   egl_hgl_tank:
+    # Scale: 1 Manim unit = 1 foot
+    # Pipes: 12" (1ft), 8" (0.667ft), 10" (0.833ft)
+    # Total system: ~85 ft length, ~37.5 ft height envelope
+    
     tanks:
       tank1:
-        width: 1.5
-        height: 2
-        position: [-6.5, 0]
-        alignment: "DL"
+        width: 6.5         # 6.5 ft wide (mid of 5-8 ft)
+        height: 10.0       # Scaled proportionally
+        position: [-42, 0]
         color: "BLUE"
         opacity: 1
       tank2:
-        width: 1.5
-        height: 2
-        position: [6.5, -0.5]
-        alignment: "UR"
+        width: 6.5         # 6.5 ft wide (mid of 5-8 ft)
+        height: 7.5        # Scaled proportionally
+        position: [37, -12]
         color: "BLUE"
         opacity: 1
+    
     pipes:
       pipe1:
-        width: 4
-        height: 0.35
-        start: [-5.2, 0.3]
-        end_direction: [-1.5, -1.5]
-        minor_loss_k: 0.5 # Entrance loss
+        width: 22        # 27.5 ft long (mid of 25-30 ft)
+        height: 1.0        # 12" = 1 ft diameter (unchanged)
+        start: [-36, 0.6]
+        end_direction: [-10.0, -10.0]
+        minor_loss_k: 0  # Entrance loss
       pipe2:
-        width: 3.8
-        height: 0.1
-        start: [-1.7, -1.4]
-        end_direction: [2, -2]
-        minor_loss_k: 0.2 # Bend/Fitting
+        width: 32.5        # 32.5 ft long (mid of 30-35 ft)
+        height: 0.667      # 8" = 0.667 ft diameter (unchanged)
+        start: [-16, -7.65]
+        end_direction: [15.0, -10.0]
+        minor_loss_k: 0  # Contraction
       pipe3:
-        width: 3
-        height: 0.25
-        start: [2, -2]
-        minor_loss_k: 1.0 # Expansion/Valve?
+        width: 22        # 17.5 ft long (mid of 15-20 ft)
+        height: 0.833      # 10" = 0.833 ft diameter (unchanged)
+        start: [16, -10.1]
+        minor_loss_k: 0  # Expansion
 
     flow_path:
       points:
-        - [-6, 1, 0]
-        - [-5, 0.12, 0]
-        - [-1.7, -1.4, 0]
-        - [2, -2, 0]
-        - [5, -2, 0]
-        - [6, -1, 0]
+        - [-38.5, 5, 0]        # Tank 1 water surface
+        - [-35.6, 0.7, 0]        # Pipe 1 start
+        - [-15.5, -7.5, 0]   # Pipe 1 end / Pipe 2 start
+        - [16, -10, 0]     # Pipe 2 end / Pipe 3 start
+        - [37, -10, 0]      # Pipe 3 end
+        - [41, -7, 0]        # Tank 2 water surface
     
     hydraulics:
-      initial_head: 2  # Water level in Tank 1 (relative to origin y=0? No, typically relative to datum. Let's assume y=0 is datum for simplicity or inputs y values are elevations)
-      # Tank 1 water surface is at y=1 (based on rect center/height). 
-      # Tank 1 center (-6.5, 0), height 2 -> y range [-1, 1]. Top is 1.
-      # So initial head is 1.
+      # Initial head = water surface elevation in Tank 1 (scaled proportionally)
+      initial_head: 10.0
       
-      # Let's verify tank 1 geometry.
-      # width 1.5, height 2, pos [-6.5, 0], align DL.
-      # DL is Bottom-Left. 
-      # pos is BL corner. (-6.5, 0).
-      # Height is 2. So Top is at y = 2.
-      # So initial head is 2.
-      
-      gravity: 9.81
-      roughness: 0
-      # We can define major/minor losses per segment if we want detailed calculation, 
-      # or just generic friction factor 'f' for visual simplicity.
-      friction_factor: 0.05 
-      velocity_head_scale: 5 # Scale factor to visually exaggerate (v^2/2g) distance
-      
-      # Component minor loss coefficients (K)
-      # We have potentially: Entrance, Bends, Exit.
-      # This simple model might just use distributed loss for pipes and sudden drops for fittings.
-      # Let's define specific drops for visual "steps" if needed, or just let 'f' handle it for slope.
+      gravity: 32.2        # ft/s² (imperial units)
+      roughness: 0.0001
+      friction_factor: 0.07  # Typical for smooth pipes
+      velocity_head_scale: 1  # No exaggeration - real scale
       
 global:
   physics:
-    gravity: 9.81
-    density: 1000
-  quality: "low"
-  background_color: "WHITE"
+    gravity: 32.2          # ft/s² (imperial units)
+    density: 62.4          # lb/ft³ (water density in imperial)
   animation:
-    viz_scale_factor: 0.5
-    closed_pipe_viz_scale: 0.6
+    viz_scale_factor: 1.0
+    closed_pipe_viz_scale: 1.0
     particle_count: 50
     wait_time_before_particles: 1
     wait_time_after_particles_start: 6

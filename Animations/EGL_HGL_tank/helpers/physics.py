@@ -32,7 +32,7 @@ def calculate_egl_hgl(points, diameters, initial_head, gravity, friction_factor,
 
     egl_points = []
     hgl_points = []
-    current_head = initial_head
+    current_egl = initial_head
     
     for i in range(len(path_points) - 1):
         p_start = path_points[i]
@@ -42,6 +42,7 @@ def calculate_egl_hgl(points, diameters, initial_head, gravity, friction_factor,
         diameter = diameters[i]
         k = ks[i]
         
+        # Calculate velocity and velocity head for this segment
         if diameter <= 0.001: 
             velocity = 0
         else:
@@ -49,26 +50,24 @@ def calculate_egl_hgl(points, diameters, initial_head, gravity, friction_factor,
             velocity = flow_rate / area
             
         velocity_head = (velocity**2) / (2 * gravity)
+        
+        # Apply minor loss at entrance
         minor_loss = k * velocity_head
+        current_egl -= minor_loss
         
-        # Before minor loss
-        egl_points.append([p_start[0], current_head, 0])
-        hgl_points.append([p_start[0], current_head - velocity_head, 0])
-        
-        # After minor loss (step)
-        current_head -= minor_loss
-        egl_points.append([p_start[0], current_head, 0])
-        hgl_points.append([p_start[0], current_head - velocity_head, 0])
+        # Start of segment (after minor loss, using NEW velocity head)
+        egl_points.append([p_start[0], current_egl, 0])
+        hgl_points.append([p_start[0], current_egl - velocity_head, 0])
 
-        # Major loss (slope)
+        # Major loss (friction) - creates slope along pipe
         if diameter > 0.001:
             head_loss = friction_factor * (segment_length / diameter) * velocity_head
         else:
             head_loss = 0
-        current_head -= head_loss
+        current_egl -= head_loss
         
-        # End of segment
-        egl_points.append([p_end[0], current_head, 0])
-        hgl_points.append([p_end[0], current_head - velocity_head, 0])
+        # End of segment (still using same velocity head until next transition)
+        egl_points.append([p_end[0], current_egl, 0])
+        hgl_points.append([p_end[0], current_egl - velocity_head, 0])
         
     return egl_points, hgl_points
