@@ -1,0 +1,58 @@
+scenes:
+  open_channel:
+    geometry:
+      v_max: 5
+      y_bed: -2
+      y_surface: 2
+      bed_x_start: -7
+      bed_x_end: 7
+      slope_angle_deg: -5
+    axes:
+      x_range: [-7, 7, 1]
+      y_range: [-4, 4, 1]
+    visuals:
+      axes_config:
+        include_tip: False
+        stroke_opacity: 0
+      bed_stroke_width: 38
+  
+  gravity_pipe:
+    geometry:
+      diameter: 4
+      water_depth: 2.5
+      y_invert: -2
+      x_start: -7
+      x_end: 7
+      v_max: 5
+      slope_angle_deg: -5
+    axes:
+      x_range: [-7, 7, 1]
+      y_range: [-4, 4, 1]
+    visuals:
+      wall_stroke_width: 38
+      top_wall_stroke_width: 20
+  
+  closed_pipe:
+    geometry:
+      diameter: 3
+      y_bottom: -1.5
+      hgl_offset_above_top: 1.5
+      x_start: -7
+      x_end: 7
+      v_max: 4
+      slope_angle_deg: -5
+    axes:
+      x_range: [-7, 7, 1]
+      y_range: [-4, 4, 1]
+    visuals:
+      wall_stroke_width: 20
+
+global:
+  quality: "high"
+  background_color: "WHITE"
+  animation:
+    viz_scale_factor: 0.5
+    closed_pipe_viz_scale: 0.6
+    particle_count: 50
+    wait_time_before_particles: 1
+    wait_time_after_particles_start: 6
