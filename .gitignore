@@ -131,3 +131,13 @@ dmypy.json
 
 # vscode
 .vscode
+
+# animantions media except .mp4 files
+# Ignore all files in any media directory
+**/media/**/*
+# Un-ignore the directories themselves (required to search inside them)
+!**/media/**/
+# Re-include only .mp4 files
+!**/media/**/*.mp4
+# Ignore partial movie files
+**/partial_movie_files/

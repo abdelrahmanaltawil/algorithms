@@ -1,0 +1,82 @@
+scenes:
+  egl_hgl_tank:
+    tanks:
+      tank1:
+        width: 1.5
+        height: 2
+        position: [-6.5, 0]
+        alignment: "DL"
+        color: "BLUE"
+        opacity: 1
+      tank2:
+        width: 1.5
+        height: 2
+        position: [6.5, -0.5]
+        alignment: "UR"
+        color: "BLUE"
+        opacity: 1
+    pipes:
+      pipe1:
+        width: 4
+        height: 0.35
+        start: [-5.2, 0.3]
+        end_direction: [-1.5, -1.5]
+        minor_loss_k: 0.5 # Entrance loss
+      pipe2:
+        width: 3.8
+        height: 0.1
+        start: [-1.7, -1.4]
+        end_direction: [2, -2]
+        minor_loss_k: 0.2 # Bend/Fitting
+      pipe3:
+        width: 3
+        height: 0.25
+        start: [2, -2]
+        minor_loss_k: 1.0 # Expansion/Valve?
+
+    flow_path:
+      points:
+        - [-6, 1, 0]
+        - [-5, 0.12, 0]
+        - [-1.7, -1.4, 0]
+        - [2, -2, 0]
+        - [5, -2, 0]
+        - [6, -1, 0]
+    
+    hydraulics:
+      initial_head: 2  # Water level in Tank 1 (relative to origin y=0? No, typically relative to datum. Let's assume y=0 is datum for simplicity or inputs y values are elevations)
+      # Tank 1 water surface is at y=1 (based on rect center/height). 
+      # Tank 1 center (-6.5, 0), height 2 -> y range [-1, 1]. Top is 1.
+      # So initial head is 1.
+      
+      # Let's verify tank 1 geometry.
+      # width 1.5, height 2, pos [-6.5, 0], align DL.
+      # DL is Bottom-Left. 
+      # pos is BL corner. (-6.5, 0).
+      # Height is 2. So Top is at y = 2.
+      # So initial head is 2.
+      
+      gravity: 9.81
+      roughness: 0
+      # We can define major/minor losses per segment if we want detailed calculation, 
+      # or just generic friction factor 'f' for visual simplicity.
+      friction_factor: 0.05 
+      velocity_head_scale: 5 # Scale factor to visually exaggerate (v^2/2g) distance
+      
+      # Component minor loss coefficients (K)
+      # We have potentially: Entrance, Bends, Exit.
+      # This simple model might just use distributed loss for pipes and sudden drops for fittings.
+      # Let's define specific drops for visual "steps" if needed, or just let 'f' handle it for slope.
+      
+global:
+  physics:
+    gravity: 9.81
+    density: 1000
+  quality: "low"
+  background_color: "WHITE"
+  animation:
+    viz_scale_factor: 0.5
+    closed_pipe_viz_scale: 0.6
+    particle_count: 50
+    wait_time_before_particles: 1
+    wait_time_after_particles_start: 6
