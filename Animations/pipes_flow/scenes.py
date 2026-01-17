@@ -7,13 +7,13 @@ import sys
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from helpers import (
-    load_config, get_open_channel_velocity, get_closed_pipe_velocity,
+    load_inputs, get_open_channel_velocity, get_closed_pipe_velocity,
     create_axes, create_velocity_profile_visuals, create_particles, get_particle_updater
 )
 
 # Load configuration
 script_dir = os.path.dirname(os.path.abspath(__file__))
-INPUTS = load_config(os.path.join(script_dir, 'inputs.yaml'))
+INPUTS = load_inputs(os.path.join(script_dir, 'inputs.yaml'))
 GLOBAL_INPUTS = INPUTS['global']
 
 
@@ -171,7 +171,8 @@ class GravityPipeProfile(Scene):
             y_range=[y_inv, y_surf],
             x_profile=0,
             v_viz_scale=GLOBAL_INPUTS['animation']['viz_scale_factor'],
-            v_max=v_max
+            v_max=v_max,
+            num_arrows=vis['num_arrows']
         )
         profile_curve, profile_fill, arrows, v_label = profile_group
 
@@ -247,7 +248,8 @@ class ClosedPipeProfile(Scene):
             y_range=[y_bot, y_top],
             x_profile=0,
             v_viz_scale=GLOBAL_INPUTS['animation']['closed_pipe_viz_scale'],
-            v_max=v_max
+            v_max=v_max,
+            num_arrows=vis['num_arrows']
         )
         profile_curve, profile_fill, arrows, v_label = profile_group
 

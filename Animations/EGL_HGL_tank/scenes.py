@@ -17,12 +17,10 @@ from helpers import (
     create_rotated_pipe_label, create_water_symbol, create_datum_line, create_flow_path
 )
 
-# # --- Configuration ---
+# --- Configuration ---
 script_dir = os.path.dirname(os.path.abspath(__file__))
 INPUTS = load_config(os.path.join(script_dir, 'inputs.yaml'))
 GLOBAL_INPUTS = INPUTS['global']
-
-
 
 
 class EGL_HGL_Tank(Scene):
@@ -40,9 +38,6 @@ class EGL_HGL_Tank(Scene):
             y_length=30
         )
         plane.add_coordinates()
-        # plane.set_color(BLACK)
-        # plane.stroke_width = 14
-        # self.add(plane)
         
         # === GEOMETRY ===
         comps = create_components(plane, cfg)
@@ -69,9 +64,7 @@ class EGL_HGL_Tank(Scene):
         datum_line, datum_label = create_datum_line(plane, t2_bottom_y, x_range=(-50, 50))
         self.play(Create(datum_line), Write(datum_label))
         
-        # # === FLOW PATH ===
-        # flow_path = create_flow_path(plane, cfg['flow_path']['points'])
-        # self.play(Create(flow_path))
+        # === FLOW PATH ===
         
         # === HYDRAULICS SETUP ===
         # Now visual height = actual diameter (unified dimensions: 1 unit = 1 ft)

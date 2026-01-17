@@ -25,7 +25,7 @@ def create_axes(x_range, y_range, config_dict=None):
     )
 
 
-def create_velocity_profile_visuals(axes, velocity_func, y_range, x_profile, v_viz_scale, v_max, color=BLACK):
+def create_velocity_profile_visuals(axes, velocity_func, y_range, x_profile, v_viz_scale, v_max, num_arrows=9, color=BLACK):
     """Creates velocity profile visualization with curve, fill, arrows, and label.
 
     Args:
@@ -35,6 +35,7 @@ def create_velocity_profile_visuals(axes, velocity_func, y_range, x_profile, v_v
         x_profile: X-position of the profile.
         v_viz_scale: Visual scale factor for velocity.
         v_max: Maximum velocity for label positioning.
+        num_arrows: Number of arrows to display.
         color: Profile color.
 
     Returns:
@@ -65,14 +66,13 @@ def create_velocity_profile_visuals(axes, velocity_func, y_range, x_profile, v_v
 
     # Arrows
     arrows = VGroup()
-    num_arrows = 9
     for i in range(num_arrows + 1):
         y = y_min + (i/num_arrows) * (y_max - y_min)
         v = velocity_func(y)
         start_pt = axes.c2p(x_profile, y)
         end_pt = axes.c2p(x_profile + v * v_viz_scale, y)
         if v > 0.1:
-            arrow = Arrow(start_pt, end_pt, buff=0, color=color, max_tip_length_to_length_ratio=0.3)
+            arrow = Arrow(start_pt, end_pt, buff=0, color=color, max_tip_length_to_length_ratio=0.1)
             arrows.add(arrow)
 
     # Velocity Label

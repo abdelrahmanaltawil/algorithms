@@ -15,6 +15,7 @@ scenes:
         include_tip: False
         stroke_opacity: 0
       bed_stroke_width: 38
+      num_arrows: 9
   
   gravity_pipe:
     geometry:
@@ -31,6 +32,7 @@ scenes:
     visuals:
       wall_stroke_width: 38
       top_wall_stroke_width: 20
+      num_arrows: 7
   
   closed_pipe:
     geometry:
@@ -46,6 +48,7 @@ scenes:
       y_range: [-4, 4, 1]
     visuals:
       wall_stroke_width: 20
+      num_arrows: 9
 
 global:
   animation:
