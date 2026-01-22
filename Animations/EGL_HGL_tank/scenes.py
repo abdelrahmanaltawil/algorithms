@@ -96,10 +96,10 @@ class EGL_HGL_Tank(Scene):
         egl_visual_pts = [plane.c2p(*p) for p in egl_pts]
         hgl_visual_pts = [plane.c2p(*p) for p in hgl_pts]
         
-        egl_line = VMobject(color=RED, stroke_width=14)
+        egl_line = VMobject(color=RED, stroke_width=25)
         egl_line.set_points_as_corners(egl_visual_pts)
         
-        hgl_line = VMobject(color=GREEN, stroke_width=14)
+        hgl_line = VMobject(color=GREEN, stroke_width=25)
         hgl_line.set_points_as_corners(hgl_visual_pts)
         
         egl_label = create_aligned_label(egl_visual_pts, "EGL", RED, UP, segment_indices=(2, 3), offset=1.0)

@@ -28,7 +28,7 @@ def create_aligned_label(pts, text, color, direction, segment_indices=(2, 3), of
     p2 = pts[i2]
     angle = angle_of_vector(p2 - p1)
     
-    label = MathTex(text, color=color, font_size=150)
+    label = MathTex(text, color=color, font_size=150, stroke_width=8)
     label.rotate(angle)
     label.move_to((p1 + p2) / 2)
     label.shift(rotate_vector(direction * offset, angle))
