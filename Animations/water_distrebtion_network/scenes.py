@@ -1,66 +1,105 @@
 from manim import *
 import numpy as np
+import heapq
+import sys
+import os
+
+# Ensure we can import from the same directory
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
 from helpers.physics import WaterNetwork
 from helpers.geometry import create_network_mobjects
 from helpers.annotations import create_velocity_labels, create_node_labels, get_p_color
+from helpers.utils import load_config
+
+# --- Load Configuration ---
+script_dir = os.path.dirname(os.path.abspath(__file__))
+INPUTS = load_config(os.path.join(script_dir, 'inputs.yaml'))
+NET_CONFIG = INPUTS['network']
+GLOBAL_PHYSICS = INPUTS['global']['physics']
+DISPLAY_CONFIG = INPUTS['display']
 
 config.pixel_height = 2160
 config.pixel_width = 3840
 config.frame_rate = 60
+config.disable_caching = True
 
-WX_BLUE = "#2980b9"
+WX_BLUE = DISPLAY_CONFIG['colors']['water_blue']
 
 class WaterDistributionScene(Scene):
     def construct(self):
-        # 1. Physics: Setup and Solve Network
+        # 1. Physics: Setup and Solve Network from Config
         net = WaterNetwork()
-        node_positions = {
-            0: [-4, 2, 0], 1: [-2, 2, 0], 2: [0, 2, 0],
-            3: [-2, 0, 0], 4: [0, 0, 0],
-            5: [-2, -2, 0], 6: [0, -2, 0]
-        }
-        for nid, pos in node_positions.items():
-            demand = 0.05 if nid != 0 else -0.3
-            net.add_node(nid, pos[0], pos[1], elevation=10, demand=demand)
-            
-        pipes_def = [
-            (0, 1, 200, 0.4), # P0
-            (1, 2, 100, 0.2), # P1
-            (3, 4, 100, 0.2), # P2
-            (5, 6, 100, 0.2), # P3
-            (1, 3, 100, 0.2), # P4
-            (2, 4, 100, 0.2), # P5
-            (3, 5, 100, 0.2), # P6
-            (4, 6, 100, 0.2)  # P7
-        ]
-        for s, e, l, d in pipes_def:
-            net.add_pipe(s, e, l, d)
-
-        # Initial Guesses
-        guesses = [0.3, 0.1, 0.05, 0.0, 0.15, 0.05, 0.05, 0.05]
-        for i, g in enumerate(guesses):
-            net.pipes[i].flow_rate = g
-
-        # Loop Definition
-        loop1 = [(1, 1), (5, 1), (2, -1), (4, -1)]
-        loop2 = [(2, 1), (7, 1), (3, -1), (6, -1)]
-        net.define_loops([loop1, loop2])
         
-        # Solve
-        net.solve_hardy_cross()
-        net.calculate_pressures(0, 50.0)
+        # Load Nodes
+        for node_key, node_data in NET_CONFIG['nodes'].items():
+            net.add_node(
+                id=node_data['id'],
+                x=node_data['pos'][0],
+                y=node_data['pos'][1],
+                elevation=node_data['elevation'],
+                demand=node_data['demand']
+            )
+            
+        # Load Pipes
+        # Sorting by ID to ensure consistent indexing if needed
+        sorted_pipes = sorted(NET_CONFIG['pipes'].items(), key=lambda item: item[1].get('id', 999))
+        
+        for pipe_key, pipe_data in sorted_pipes:
+            net.add_pipe(
+                start_id=pipe_data['start'],
+                end_id=pipe_data['end'],
+                length=pipe_data['length'],
+                diameter=pipe_data['diameter'],
+                c=GLOBAL_PHYSICS.get('default_roughness', 100)
+            )
+            
+        # MANUAL FLOW SETTING (For Dead-End / Branch Line)
+        # We set flow rates from config directly instead of solving
+        sorted_pipe_keys = [k for k, v in sorted_pipes]
+        
+        for i, (pipe_key, pipe_data) in enumerate(sorted_pipes):
+            # net.pipes list order matches insertion order.
+            # Since we inserted in sorted order of ID, i should match if IDs are 0..N
+            # But safer to just set it on the pipe object we just added implicitly?
+            # Actually net.pipes is a list.
+            # Let's verify: net.add_pipe appends to self.pipes.
+            # So net.pipes[i] corresponds to sorted_pipes[i].
+            
+            p = net.pipes[i]
+            if 'flow' in pipe_data:
+                p.flow_rate = pipe_data['flow']
+            else:
+                p.flow_rate = 0 # Default or Warning
+            
+            # Update Hydraulic Properties (Head Loss, Velocity)
+            p.calculate_head_loss()
+            p.update_velocity()
+
+        # No Loops defined for this topology
+        
+        # Propagate Pressure
+        # Assuming Node 0 is source
+        source_id = 0 
+        # Find source node from config if marked
+        for n_key, n_data in NET_CONFIG['nodes'].items():
+            if n_data.get('type') == 'source':
+                source_id = n_data['id']
+                break
+                
+        net.calculate_pressures(source_id, GLOBAL_PHYSICS['source_pressure_head'])
 
         # 2. Geometry & Annotations
-        title = Text("Water Distribution Network Simulation", font_size=36).to_edge(UP)
-        subtitle = Text("Hardy Cross Method: Flow, Velocity & Pressure", font_size=24, color=BLUE).next_to(title, DOWN)
+        title = Text("Branching Water Distribution System", font_size=36).to_edge(UP)
+        subtitle = Text("Dead-End Network Simulation", font_size=24, color=BLUE).next_to(title, DOWN)
         self.play(Write(title), FadeIn(subtitle))
         
         pipe_mobjects, node_mobjects = create_network_mobjects(net)
         labels = create_velocity_labels(net, pipe_mobjects)
-        node_labels = create_node_labels(net, node_mobjects)
+        # node_labels = create_node_labels(net, node_mobjects)
         
-        for n, lbl in node_labels.items():
-            labels[n] = lbl
+        # for n, lbl in node_labels.items():
+        #     labels[n] = lbl
 
         # --- ANIMATION SEQUENCE ---
 
@@ -73,71 +112,64 @@ class WaterDistributionScene(Scene):
         )
         self.wait(0.5)
 
-        # 2. Recursive Asynchronous Flow
-        # Construct ad-hoc Flow Adjacency
-        flow_adj = {n_id: [] for n_id in net.nodes}
-        for p in net.pipes:
-            if p.flow_rate >= 0:
-                u, v = p.start_node, p.end_node
-            else:
-                u, v = p.end_node, p.start_node
-            flow_adj[u].append((v, p))
-
-        # We need a function to generate the animation tree
-        # To avoid infinite recursion in loops, we track depth or path.
-        # But for animation construction, we can't easily pass state that updates *during* animation.
-        # However, we can build the tree *assuming* the structure.
-        # Since it's a DAG (for flow usually, or we stop at cycles)?
-        # Hardy Cross solves for steady state, so flow is directional. 
-        # Cycles are possible physically (circulation), but usually sources->sinks.
-        # We'll use a `max_depth` to be safe.
-
+        # 2. Global Time-Scheduled Flow Animation
+        # Use Dijkstra's Algorithm to find min arrival time T for every node.
+        
         def clamp(val, min_v, max_v):
             return max(min_v, min(val, max_v))
-
-        def get_flow_animation(u_id, depth=0):
-            if depth > 10: return Wait(0.1) # Safety break
             
-            branches = []
+        # Initialize Dijkstra
+        node_times = {nid: float('inf') for nid in net.nodes}
+        node_times[0] = 0.0
+        
+        pq = [(0.0, 0)] # (time, node_id)
+        pipe_schedules = {} # pipe_obj -> (start_time, duration)
+        
+        while pq:
+            curr_time, u = heapq.heappop(pq)
+            if curr_time > node_times[u]: continue
             
-            # For each outgoing pipe
-            for v_id, p in flow_adj[u_id]:
-                # Create water line (New Instance for this branch)
-                start_pos = net.nodes[u_id].pos
-                end_pos = net.nodes[v_id].pos
-                water_line = Line(start_pos, end_pos, stroke_width=p.diameter*20, color=WX_BLUE)
-                
-                # Animation Duration (T = L/v)
+            downstream = net.get_downstream_neighbors(u)
+            for v, p in downstream:
                 if abs(p.velocity) > 1e-4:
                     phys_time = p.length / abs(p.velocity)
                     anim_time = clamp(phys_time / 60.0, 0.5, 2.5)
                 else:
                     anim_time = 0.5
                 
-                # Branch Animation Sequence
-                branch_anim = Succession(
-                    # 1. Fill Pipe
-                    Create(water_line, run_time=anim_time, rate_func=linear),
-                    # 2. Color Destination Node (Instant)
-                    node_mobjects[net.nodes[v_id]].animate.set_color(WX_BLUE).set_run_time(0.2),
-                    # 3. Trigger Downstream recursively
-                    get_flow_animation(v_id, depth+1)
-                )
-                branches.append(branch_anim)
-            
-            if not branches:
-                return Wait(0.1) # Leaf node
-            
-            # Run all branches in parallel (async)
-            return AnimationGroup(*branches)
-
-        # Start from Source
-        # Color Source Node first
-        self.play(node_mobjects[net.nodes[0]].animate.set_color(WX_BLUE), run_time=0.2)
+                arrival_time = curr_time + anim_time
+                pipe_schedules[p] = (curr_time, anim_time, u, v)
+                
+                if arrival_time < node_times[v]:
+                    node_times[v] = arrival_time
+                    heapq.heappush(pq, (arrival_time, v))
         
-        # Build and Run Tree
-        flow_anim_tree = get_flow_animation(0)
-        self.play(flow_anim_tree)
+        # Build Flat Animation List
+        all_anims = []
+        
+        # 1. Pipes
+        for p, (start_t, dur, u, v) in pipe_schedules.items():
+            start_pos = net.nodes[u].pos
+            end_pos = net.nodes[v].pos
+            water_line = Line(start_pos, end_pos, stroke_width=p.diameter*20, color=WX_BLUE)
+            
+            if start_t > 0:
+                anim = Succession(Wait(start_t), Create(water_line, run_time=dur, rate_func=linear))
+            else:
+                anim = Create(water_line, run_time=dur, rate_func=linear)
+            all_anims.append(anim)
+            
+        # 2. Nodes
+        for nid, t in node_times.items():
+            if t == float('inf'): continue 
+            if t > 0:
+                anim = Succession(Wait(t), node_mobjects[net.nodes[nid]].animate.set_color(WX_BLUE).set_run_time(0.2))
+            else:
+                anim = node_mobjects[net.nodes[nid]].animate.set_color(WX_BLUE).set_run_time(0.2)
+            all_anims.append(anim)
+
+        # Play Everything Together
+        self.play(AnimationGroup(*all_anims, lag_ratio=0))
         
         self.wait(1)
         
@@ -146,27 +178,36 @@ class WaterDistributionScene(Scene):
         self.play(FadeOut(subtitle), Write(heatmap_title))
         
         # Legend
-        bar = Rectangle(height=4, width=0.3).to_edge(RIGHT, buff=1)
+        bar = Rectangle(height=0.3, width=4).to_edge(DOWN, buff=1)
         bar.set_fill(color=[BLUE, YELLOW, RED], opacity=1)
+        bar.rotate(PI)
         bar.set_stroke(width=0)
         
         pressures = [n.pressure for n in net.nodes.values()]
         min_p, max_p = min(pressures), max(pressures)
         
-        min_lbl = Text(f"{min_p:.1f} kPa", font_size=16).next_to(bar, DOWN)
-        max_lbl = Text(f"{max_p:.1f} kPa", font_size=16).next_to(bar, UP)
-        mid_lbl = Text("Pressure", font_size=16).rotate(PI/2).next_to(bar, LEFT)
+        min_lbl = Text(f"{min_p:.1f} kPa", font_size=16).next_to(bar, LEFT)
+        max_lbl = Text(f"{max_p:.1f} kPa", font_size=16).next_to(bar, RIGHT)
+        mid_lbl = Text("Pressure", font_size=16).next_to(bar, DOWN)
         
         legend = VGroup(bar, min_lbl, max_lbl, mid_lbl)
         self.play(FadeIn(legend))
         
-        # Heatmap Coloring
+
+        node_labels = create_node_labels(net, node_mobjects)
+        for n, lbl in node_labels.items():
+            labels[n] = lbl
+
+        # Heatmap Coloring & Label Moving
         transforms = []
         for n in net.nodes.values():
             col = get_p_color(n.pressure, min_p, max_p)
             transforms.append(node_mobjects[n].animate.set_color(col).set_width(0.4).set_z_index(10))
+            
+            if n.id in node_labels:
+                lbl = node_labels[n.id]
+                transforms.append(lbl.animate.next_to(node_mobjects[n], UP, buff=0.15).set_z_index(20))
         
-        # Bring base pipes to front and color them
         for p in net.pipes:
             if p.flow_rate >= 0:
                 u, v = net.nodes[p.start_node], net.nodes[p.end_node]
@@ -177,24 +218,18 @@ class WaterDistributionScene(Scene):
             end_col = get_p_color(v.pressure, min_p, max_p)
             
             line = pipe_mobjects[p]
-            # Ensure it's opaque, colorful, and ON TOP (z_index=5)
-            # Water lines are z=0 by default.
             transforms.append(
                 line.animate.set_stroke(opacity=1, width=p.diameter*20)
                 .set_color(color=[start_col, end_col])
                 .set_z_index(5)
             )
             
-        # Also bring labels to front if they are to remain visible
-        # (Though we fade them out right after, the fade out happens during or after transform?)
-        # THe code says self.play(*transforms), then self.play(*fadeouts).
-        # So labels should be visible during heatmap transition.
         for lbl in labels.values():
-            transforms.append(lbl.animate.set_z_index(20))
+            if isinstance(lbl, VGroup): # Velocity Label
+                 transforms.append(lbl.animate.set_z_index(20))
 
         self.play(*transforms, run_time=2)
         
-        # Remove labels
         fade_outs = [FadeOut(labels[p]) for p in net.pipes if p in labels]
         self.play(*fade_outs)
         

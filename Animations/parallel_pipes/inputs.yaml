@@ -1,0 +1,72 @@
+project:
+  name: "Parallel Pipes Flow"
+  description: "Simulation of flow through three parallel pipes with different lengths and diameters."
+
+network:
+  nodes:
+    node_inlet_start: { id: 0, pos: [-6, 0, 0], type: "source" }
+    node_1: { id: 1, pos: [-3, 0, 0], type: "junction" } # Split Point
+    node_merge: { id: 2, pos: [3, 0, 0], type: "junction" } # Convergence
+    node_2: { id: 3, pos: [6, 0, 0], type: "sink" } # End of Pipe D
+    
+  pipes:
+    # Inlet Pipe
+    pipe_inlet: 
+      id: "inlet"
+      start_node: 0
+      end_node: 1
+      length: 100 # Assumed for visual
+      diameter_mm: 300
+      type: "straight"
+
+    # Parallel Branch A (Top)
+    pipe_A:
+      id: "A"
+      start_node: 1
+      end_node: 2
+      length: 600
+      diameter_mm: 240
+      type: "rectangular_top"
+      offset_y: 2.5 # Visual height offset
+
+    # Parallel Branch B (Middle)
+    pipe_B:
+      id: "B"
+      start_node: 1
+      end_node: 2
+      length: 450
+      diameter_mm: 200
+      type: "straight"
+
+    # Parallel Branch C (Bottom)
+    pipe_C:
+      id: "C"
+      start_node: 1
+      end_node: 2
+      length: 720
+      diameter_mm: 220
+      type: "rectangular_bottom"
+      offset_y: -2.5 # Visual height offset
+
+    # Outlet Pipe D
+    pipe_D:
+      id: "D"
+      start_node: 2
+      end_node: 3
+      length: 200
+      diameter_mm: 300
+      type: "straight"
+
+display:
+  colors:
+    pipe_stroke: "#87CEEB"
+    pipe_fill: "#87CEEB"
+  scales:
+    pipe_width_factor: 0.02 # Scale diameter mm to screen units
+
+physics:
+  fluid:
+    total_flow_rate: 0.5 # m^3/s
+    kinematic_viscosity: 1.0e-6 # Water
+  gravity: 9.81
+  default_roughness: 0.0015 # mm

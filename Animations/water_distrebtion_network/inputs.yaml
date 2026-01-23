@@ -1,0 +1,83 @@
+network:
+  nodes:
+    # Main Spine
+    node_0: { id: 0, pos: [-6, 0, 0], elevation: 20, demand: -0.3, type: "source" }
+    node_1: { id: 1, pos: [-3, 0, 0], elevation: 10, demand: 0, type: "junction" }
+    node_2: { id: 2, pos: [0, 0, 0], elevation: 10, demand: 0, type: "junction" }
+    node_3: { id: 3, pos: [3, 0, 0], elevation: 10, demand: 0, type: "junction" }
+    node_4: { id: 4, pos: [6, 0, 0], elevation: 10, demand: 0.05, type: "leaf" } # End of Main
+    
+    # Branch 1 (at Node 1)
+    node_5: { id: 5, pos: [-3, 2, 0], elevation: 10, demand: 0.05, type: "leaf" }
+    node_6: { id: 6, pos: [-3, -2, 0], elevation: 10, demand: 0.05, type: "leaf" }
+    
+    # Branch 2 (at Node 2)
+    node_7: { id: 7, pos: [0, 2, 0], elevation: 10, demand: 0.05, type: "leaf" }
+    node_8: { id: 8, pos: [0, -2, 0], elevation: 10, demand: 0.05, type: "leaf" }
+    
+    # Branch 3 (at Node 3)
+    node_9: { id: 9, pos: [3, 2, 0], elevation: 10, demand: 0.05, type: "leaf" }
+    node_10: { id: 10, pos: [3, -2, 0], elevation: 10, demand: 0.05, type: "leaf" }
+    
+    # Branch 4 (at Node 4/End? - Based on user edit, 4 is end junction? No, user changed 3->4 mapping)
+    # Re-checking scenes.py logic:
+    # 0->1->2->3->4 (Main)
+    # 1->5, 1->6
+    # 2->7, 2->8
+    # 3->9, 3->10
+    # 9->11 ?? No, user added 9->11 and 10->12?
+    # Let's match the latest valid scenes.py diff block carefully.
+    
+    # Branch 4 (Leaves attached to Branch 3 ends??) 
+    # Waiting, let's look at the user Edit Id: 1085:
+    # (3, 4, 100, 0.3) -> P3 (J3->J4)
+    # (9, 11, ...) -> P9  (J?->11)
+    # (10, 12, ...) -> P10
+    
+    node_11: { id: 11, pos: [6, 2, 0], elevation: 10, demand: 0.05, type: "leaf" }
+    node_12: { id: 12, pos: [6, -2, 0], elevation: 10, demand: 0.05, type: "leaf" }
+
+  pipes:
+    # Main Spine
+    p0: { id: 0, start: 0, end: 1, length: 200, diameter: 0.4, flow: 0.6 } # Source -> J1
+    p1: { id: 1, start: 1, end: 2, length: 100, diameter: 0.3, flow: 0.4 } # J1 -> J2
+    p2: { id: 2, start: 2, end: 3, length: 100, diameter: 0.3, flow: 0.2 } # J2 -> J3
+    p3: { id: 3, start: 3, end: 4, length: 100, diameter: 0.3, flow: 0.05 } # J3 -> J4 (End Main) - Wait, J4 is Leaf? 
+    # If 4 is leaf, demand is 0.05. Flow is 0.05.
+    
+    # Branch 1 (at J1)
+    p3_b1_up:   { id: 4, start: 1, end: 5, length: 80, diameter: 0.15, flow: 0.05 }
+    p4_b1_down: { id: 5, start: 1, end: 6, length: 80, diameter: 0.15, flow: 0.05 }
+    
+    # Branch 2 (at J2)
+    p5_b2_up:   { id: 6, start: 2, end: 7, length: 80, diameter: 0.15, flow: 0.05 }
+    p6_b2_down: { id: 7, start: 2, end: 8, length: 80, diameter: 0.15, flow: 0.05 }
+    
+    # Branch 3 (at J3)
+    p7_b3_up:   { id: 8, start: 3, end: 9, length: 80, diameter: 0.15, flow: 0.05 }
+    p8_b3_down: { id: 9, start: 3, end: 10, length: 80, diameter: 0.15, flow: 0.05 }
+
+    # Branch 4 (Extensions from 9/10?? Or new from J4?)
+    # User edit: (9, 11) and (10, 12). So 9 and 10 are Junctions now?
+    # Let's assume 9 and 10 extend to 11 and 12.
+    # Flow balance:
+    # If 11, 12 are leaves (0.05 each).
+    # Then 9 must supply 11 (0.05) + itself? 
+    # Let's assume leaves are only at the very ends.
+    # So 9 and 10 are just pipe segments now?
+    # Let's verify flow logic in scenes.py later, but put topology here.
+    p9_ext_up:   { id: 9, start: 9, end: 11, length: 80, diameter: 0.15, flow: 0.05 }
+    p10_ext_down: { id: 10, start: 10, end: 12, length: 80, diameter: 0.15, flow: 0.05 }
+
+global:
+  physics:
+    gravity: 9.81
+    default_roughness: 100
+    source_pressure_head: 50.0
+
+display:
+  colors:
+    water_blue: "#2980b9"
+    background: "#000000"
+  animation:
+    time_scale: 60.0

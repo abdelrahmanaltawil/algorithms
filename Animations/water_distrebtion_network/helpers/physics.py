@@ -78,6 +78,23 @@ class WaterNetwork:
             p.calculate_head_loss()
             p.update_velocity()
 
+    def get_downstream_neighbors(self, node_id):
+        """
+        Returns a list of (neighbor_id, pipe) for all outgoing flow from node_id.
+        """
+        downstream = []
+        # We could pre-compute this, but iterating pipes is fine for small networks
+        for p in self.pipes:
+            # Determine flow direction
+            if p.flow_rate >= 0:
+                u, v = p.start_node, p.end_node
+            else:
+                u, v = p.end_node, p.start_node
+            
+            if u == node_id:
+                downstream.append((v, p))
+        return downstream
+
     def calculate_pressures(self, source_node_id, source_head):
         self.nodes[source_node_id].head = source_head
         visited = set([source_node_id])
