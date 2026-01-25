@@ -17,7 +17,6 @@ parallel_pipes/
 │   ├── geometry.py     # Pipe/node visual generation
 │   ├── physics.py      # Flow distribution calculation
 │   ├── annotations.py  # Flow rate labels
-│   ├── streamlines.py  # Streamline path composition
 │   └── utils.py        # Config loader
 └── README.md
 ```

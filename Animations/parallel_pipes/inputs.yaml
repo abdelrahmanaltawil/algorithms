@@ -25,7 +25,7 @@ network:
       start_node: 1
       end_node: 2
       length: 600
-      diameter_mm: 240
+      diameter_mm: 220
       type: "rectangular_top"
       offset_y: 2.5 # Visual height offset
 
@@ -35,7 +35,7 @@ network:
       start_node: 1
       end_node: 2
       length: 450
-      diameter_mm: 200
+      diameter_mm: 220
       type: "straight"
 
     # Parallel Branch C (Bottom)
@@ -49,8 +49,8 @@ network:
       offset_y: -2.5 # Visual height offset
 
     # Outlet Pipe D
-    pipe_D:
-      id: "D"
+    pipe_outlet:
+      id: "outlet"
       start_node: 2
       end_node: 3
       length: 200
@@ -66,7 +66,7 @@ display:
 
 physics:
   fluid:
-    total_flow_rate: 0.5 # m^3/s
+    total_flow_rate: 0.1 # m^3/s
     kinematic_viscosity: 1.0e-6 # Water
   gravity: 9.81
   default_roughness: 0.0015 # mm

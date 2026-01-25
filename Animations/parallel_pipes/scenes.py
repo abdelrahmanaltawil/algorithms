@@ -10,8 +10,10 @@ import os
 
 # Add helpers to path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-from helpers.config import load_config
+from helpers.utils import load_config
 from helpers.geometry import create_system_mobjects
+from helpers.physics import calculate_parallel_flows, calculate_system_heads
+from helpers.annotations import create_flow_label, create_head_label, create_flow_arrow
 
 # Load configuration
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -26,58 +28,28 @@ class ParallelPipesScene(Scene):
         nodes_cfg = INPUTS['network']['nodes']
         pipes_cfg = INPUTS['network']['pipes']
         disp_cfg = INPUTS['display']
+        phys_cfg = INPUTS['physics']['fluid']
         
-        # Build geometry - get the paths
-        nodes, pipes, geo_labels = create_system_mobjects(nodes_cfg, pipes_cfg, disp_cfg)
+        # Build geometry (nodes, pipes, streamlines)
+        nodes_mobs, pipes, streamlines = create_system_mobjects(
+            nodes_cfg, pipes_cfg, disp_cfg
+        )
         
-        # Show each pipe separately with labels
-        # Inlet pipe (starting)
-        inlet = pipes['pipe_inlet'][1].copy()
-        inlet.set_style(fill_opacity=0, stroke_color=GREEN, stroke_width=4)
+        # Get streamline paths
+        streamline_a = streamlines['A']
+        streamline_b = streamlines['B']
+        streamline_c = streamlines['C']
         
-        # Outlet pipe (ending)
-        outlet = pipes['pipe_D'][1].copy()
-        outlet.set_style(fill_opacity=0, stroke_color=RED, stroke_width=4)
-        
-        # Base pipes (main paths) - thinner stroke
-        branch_a = pipes['pipe_A'][1].copy()
-        branch_a.set_style(fill_opacity=0, stroke_color=BLUE, stroke_width=2)
-        
-        branch_b = pipes['pipe_B'][1].copy()
-        branch_b.set_style(fill_opacity=0, stroke_color=BLUE, stroke_width=2)
-        
-        branch_c = pipes['pipe_C'][1].copy()
-        branch_c.set_style(fill_opacity=0, stroke_color=BLUE, stroke_width=2)
-        
-        # Create base streamlines (without visual offset lines)
-        from helpers.streamlines import compose_streamline_path
-        
-        # Get base paths
-        inlet_path = pipes['pipe_inlet'][1]
-        outlet_path = pipes['pipe_D'][1]
-        
-        # Compose full streamlines for each branch
-        streamline_a = compose_streamline_path(inlet_path, pipes['pipe_A'][1], outlet_path)
-        streamline_b = compose_streamline_path(inlet_path, pipes['pipe_B'][1], outlet_path)
-        streamline_c = compose_streamline_path(inlet_path, pipes['pipe_C'][1], outlet_path)
-        
-        # Style streamlines (optional - can hide if you only want particles)
+        # Style streamlines
         for sl in [streamline_a, streamline_b, streamline_c]:
-            sl.set_style(fill_opacity=0, stroke_color=BLUE, stroke_width=2)
-        
-        streamlines = VGroup(streamline_a, streamline_b, streamline_c)
-        
-        # Display full pipe groups (Outline + Inner Path) to show thickness/walls
-        # Display full pipe groups (Outline + Inner Path) to show thickness/walls
+            sl.set_style(fill_opacity=0.9, stroke_color=BLUE, stroke_width=2)
         
         # Create simplified groups for fluid and walls
-        # Using pre-generated geometry from helper which handles diameter variations correctly
         fluid_body = VGroup()
         walls = VGroup()
         
         # Iterate through all pipes to collect their components
-        # Order doesn't strictly matter for VGroup collection, but logical for debugging
-        pipe_keys = ['pipe_inlet', 'pipe_A', 'pipe_B', 'pipe_C', 'pipe_D']
+        pipe_keys = ['pipe_inlet', 'pipe_A', 'pipe_B', 'pipe_C', 'pipe_outlet']
         
         for key in pipe_keys:
             if key in pipes:
@@ -92,91 +64,153 @@ class ParallelPipesScene(Scene):
                 walls.add(outline)
                 fluid_body.add(fluid)
         
-        # Layering: Fluid ON TOP of Walls (z-index higher)
-        # This prevents the black wall lines from cutting through the blue fluid at junctions
+        # Layering: Fluid ON TOP of Walls
         walls.set_z_index(0)
         fluid_body.set_z_index(1)
         
-        # Animation Sequence matches user request:
+        # Animation Sequence:
         # 1. Fluid fills the system (Blue)
-        self.play(Create(fluid_body), run_time=1.5)
+        self.play(FadeIn(fluid_body), run_time=1)
         
         # 2. Walls appear "around" the fluid
         self.play(Create(walls), run_time=1.5)
+
+        # --- Annotations & Physics Calcs ---
+        # 1. Calculate Flows
+        total_q = phys_cfg['total_flow_rate']
+        parallel_data = [pipes_cfg[f'pipe_{pid}'] for pid in ['A', 'B', 'C']]
+        flows = calculate_parallel_flows(total_q, parallel_data)
+        flows['inlet'] = total_q
+        flows['outlet'] = total_q
         
-        # 3. Particles appear (Streamlines lines skipped)
-        self.wait(1)
+        # 2. Calculate Heads and Velocities
+        # Merging physics inputs for convenience
+        combined_phys = {**INPUTS['physics']['fluid'], **INPUTS['physics']}
+        node_heads, pipe_velocities = calculate_system_heads(nodes_cfg, pipes_cfg, flows, combined_phys)
         
-        # --- Particle Animation with offset sampling ---
+        # Create Flow Labels
+        annotations_labels = VGroup()
         
+        flow_lbl_inlet = create_flow_label(pipes['pipe_inlet'][1], flows['inlet'], "inlet", direction=UP, buff=0.6)
+        flow_lbl_outlet = create_flow_label(pipes['pipe_outlet'][1], flows['outlet'], "outlet", direction=UP, buff=0.6)
+        flow_lbl_A = create_flow_label(pipes['pipe_A'][1], flows['A'], "A", direction=UP, buff=0.6)
+        flow_lbl_B = create_flow_label(pipes['pipe_B'][1], flows['B'], "B", direction=UP, buff=0.6)
+        flow_lbl_C = create_flow_label(pipes['pipe_C'][1], flows['C'], "C", direction=DOWN, buff=0.6)
+
+        # annotations_labels.add(flow_lbl_inlet, flow_lbl_outlet, flow_lbl_A, flow_lbl_B, flow_lbl_C)
+        flow_lbls = VGroup(flow_lbl_inlet, flow_lbl_A, flow_lbl_B, flow_lbl_C, flow_lbl_outlet)
+        self.play(Create(flow_lbls), run_time=0.5)
+
+        # Head Labels at Nodes
+        # Start Node (0), Junction 1 (1), Junction 2 (2), End Node (3)
+        for nid, val in node_heads.items():
+            if nid in nodes_mobs:
+                pos = nodes_mobs[nid].get_center()
+                
+                label_offset = UP * 1.8 # General high placement
+                if nid == 0: # Inlet Start
+                     label_offset = UP * 1.2
+                elif nid == 1: # Split
+                     label_offset = UP * 1.2 + LEFT * 0.5
+                elif nid == 2: # Merge
+                     label_offset = UP * 1.2 + RIGHT * 0.5
+                
+                head_lbl = create_head_label(val, pos + label_offset)
+                annotations_labels.add(head_lbl)
+        
+        # Layering: Annotations on top
+        # annotations_labels.set_z_index(10)
+        # self.play(FadeIn(annotations_labels))
+
+        # --- Particle Animation ---
         def create_particles_with_offset(path, num_particles, speed, offset_range=0.3):
-            """Generate particles distributed along path with random offset from center."""
+            """
+            Generate particles for a batch injection.
+            Particles start with negative alpha to flow in from the inlet.
+            """
             particles = VGroup()
             for _ in range(num_particles):
                 dot = Dot(radius=0.04, color=BLACK)
                 
-                # Random initial position along path (0 to 1)
-                alpha = random.uniform(0, 1)
+                # Distribute particles in a "batch" behind the inlet
+                alpha = random.uniform(-0.5, 0.0)
                 
-                # Random offset from path center (sampled from distribution)
+                # Random offset from path center
                 offset = random.uniform(-offset_range, offset_range)
                 
-                dot.virt_alpha = alpha      # Virtual position on path
+                dot.virt_alpha = alpha      # Virtual position (starts before pipe)
                 dot.virt_offset = offset    # Offset from path center
                 dot.speed = speed           # Speed along path
                 dot.path_ref = path         # Reference to path
                 
-                # Set initial position with offset
-                base_pos = path.point_from_proportion(alpha)
-                dot.move_to(base_pos + np.array([0, offset, 0]))
+                # Initial position (hidden)
+                dot.set_opacity(0)
+                base_pos = path.point_from_proportion(0)
+                dot.move_to(base_pos)
+                
                 particles.add(dot)
             return particles
         
         def get_offset_path_updater():
-            """Returns updater that moves particles along paths with offset."""
+            """
+            Returns updater that moves particles along paths.
+            Handles visibility (show only when 0 <= alpha <= 1).
+            """
             def update_particles(mob, dt):
                 for dot in mob:
                     # Update virtual position
                     dot.virt_alpha += dot.speed * dt
-                    # Wrap around when reaching end
-                    dot.virt_alpha = dot.virt_alpha % 1.0
-                    # Get base position on path
-                    base_pos = dot.path_ref.point_from_proportion(dot.virt_alpha)
-                    # Apply offset (perpendicular to flow direction - simplified as Y offset)
-                    dot.move_to(base_pos + np.array([0, dot.virt_offset, 0]))
+                        
+                    # Determine visibility and position
+                    if 0 <= dot.virt_alpha <= 1:
+                        dot.set_opacity(1)
+                        # Get base position on path
+                        base_pos = dot.path_ref.point_from_proportion(dot.virt_alpha)
+                        # Apply offset
+                        dot.move_to(base_pos + np.array([0, dot.virt_offset, 0]))
+                    else:
+                        dot.set_opacity(0)
+                        
             return update_particles
+        
+        # Factor to scale velocities for visualization
+        damping_factor = 0.5
+        A_v_factored = pipe_velocities['pipe_A'] * damping_factor
+        B_v_factored = pipe_velocities['pipe_B'] * damping_factor
+        C_v_factored = pipe_velocities['pipe_C'] * damping_factor
         
         # Create particles on each streamline
         all_particles = VGroup()
-        base_speed = 0.08
         
-        # Branch A (top) - particles
-        # Reduced offset to keep inside pipe (Diameter ~0.34 units -> Radius ~0.17)
-        particles_a = create_particles_with_offset(streamline_a, 15, base_speed, offset_range=0.12)
+        # Branch A (top)
+        particles_a = create_particles_with_offset(streamline_a, 15, A_v_factored, offset_range=0.12)
         all_particles.add(*particles_a)
         
-        # Branch B (middle) - more particles (higher flow)
-        # Reduced offset (Diameter ~0.28 units -> Radius ~0.14)
-        particles_b = create_particles_with_offset(streamline_b, 20, base_speed * 1.2, offset_range=0.10)
+        # Branch B (middle) - more particles
+        particles_b = create_particles_with_offset(streamline_b, 20, B_v_factored, offset_range=0.10)
         all_particles.add(*particles_b)
         
-        # Branch C (bottom) - particles
-        # Reduced offset (Diameter ~0.31 units -> Radius ~0.155)
-        particles_c = create_particles_with_offset(streamline_c, 15, base_speed, offset_range=0.11)
+        # Branch C (bottom)
+        particles_c = create_particles_with_offset(streamline_c, 15, C_v_factored, offset_range=0.11)
         all_particles.add(*particles_c)
         
-        # Layering: Particles (2) > Fluid (1) > Walls (0)
-        all_particles.set_z_index(2)
+        # Layering: Boost Z-index to ensure on top of fluid
+        all_particles.set_z_index(100)
         
-        # Add particles to scene
         self.add(all_particles)
-        
-        # Add updater for continuous motion
         all_particles.add_updater(get_offset_path_updater())
-        
-        # Let animation run
-        self.wait(8)
-        
-        # Remove updaters before ending
+        self.wait(4)
         all_particles.clear_updaters()
-        self.wait(1)
+        
+        # Arrows (closer to pipe than labels)
+        arrow_inlet = create_flow_arrow(pipes['pipe_inlet'][1], direction=UP, buff=-0.15)
+        arrow_outlet = create_flow_arrow(pipes['pipe_outlet'][1], direction=UP, buff=-0.15)
+        arrow_A = create_flow_arrow(pipes['pipe_A'][1], direction=UP, buff=-0.15)
+        arrow_B = create_flow_arrow(pipes['pipe_B'][1], direction=UP, buff=-0.15)
+        arrow_C = create_flow_arrow(pipes['pipe_C'][1], direction=DOWN, buff=-0.2)
+        
+        arrows = VGroup(arrow_inlet, arrow_A, arrow_B, arrow_C, arrow_outlet).set_z_index(10)
+        self.play(Create(arrows))
+
+
+        self.wait(3)

@@ -136,11 +136,16 @@ def create_pipe_path(start_pos, end_pos, pipe_config):
 
 def create_system_mobjects(nodes_config, pipes_config, display_config):
     """
-    Creates Manim mobjects for all nodes and pipes.
+    Creates Manim mobjects for all nodes, pipes, and streamlines.
+    
+    Returns:
+        tuple: (node_mobjects, pipe_mobjects, streamlines)
+            - node_mobjects: dict mapping node_id -> Dot mobject
+            - pipe_mobjects: dict mapping pipe_key -> VGroup(outline, path)
+            - streamlines: dict mapping branch_id -> full streamline path
     """
     node_mobjects = {}
     pipe_mobjects = {}
-    labels = VGroup()
     
     # Scale
     scale = display_config['scales']['pipe_width_factor']
@@ -168,40 +173,62 @@ def create_system_mobjects(nodes_config, pipes_config, display_config):
         path.set_stroke(width=width)
         
         # Outline (Outer / Border)
-        # Create a copy and styling it as a black border
         outline = path.copy()
         outline.set_color(BLACK)
-        outline.set_stroke(width=width + 16) # Add padding for border
+        outline.set_stroke(width=width + 16)
         
         # Group: Outline first (behind), then Path
         pipe_group = VGroup(outline, path)
-        
-        pipe_mobjects[key] = pipe_group # Now points to group
-        
-        # 3. Labels (Length & Dia)
-        # Position label at center of pipe path
-        if data.get('type') == 'straight':
-            center = (start_pos + end_pos) / 2
-            # Offset slightly up
-            lbl_pos = center + UP * 0.4
-        else:
-            # For rectangular, center is effectively (x_mid, y_offset)
-            x_mid = (start_pos[0] + end_pos[0]) / 2
-            y_off = data.get('offset_y', 0)
-            center = np.array([x_mid, start_pos[1] + y_off, 0])
-            
-            # Label on top for top pipe, below for bottom
-            direction = UP if y_off > 0 else DOWN
-            lbl_pos = center + direction * 0.4
-            
-        txt = f"L={data['length']}m\n\u00d8{data['diameter_mm']}mm"
-        label = Text(txt, font_size=16, line_spacing=1).move_to(lbl_pos)
-        labels.add(label)
-        
-        # Pipe ID Label (A, B, C, D) inside or near pipe
-        id_lbl = Text(data['id'], font_size=24, weight=BOLD).move_to(center)
-        # Add background to ID label for readability?
-        bg = BackgroundRectangle(id_lbl, fill_opacity=0.6, buff=0.1)
-        labels.add(VGroup(bg, id_lbl))
+        pipe_mobjects[key] = pipe_group
 
-    return node_mobjects, pipe_mobjects, labels
+    # 3. Create Streamlines for parallel branches
+    streamlines = {}
+    
+    if 'pipe_inlet' in pipe_mobjects and 'pipe_outlet' in pipe_mobjects:
+        inlet_path = pipe_mobjects['pipe_inlet'][1]
+        outlet_path = pipe_mobjects['pipe_outlet'][1]
+        
+        for branch_id in ['A', 'B', 'C']:
+            pipe_key = f'pipe_{branch_id}'
+            if pipe_key in pipe_mobjects:
+                branch_path = pipe_mobjects[pipe_key][1]
+                streamlines[branch_id] = _compose_streamline_path(
+                    inlet_path, branch_path, outlet_path
+                )
+
+    return node_mobjects, pipe_mobjects, streamlines
+
+
+def _compose_streamline_path(inlet_path, branch_path, outlet_path):
+    """
+    Composes a single continuous VMobject path from inlet -> branch -> outlet
+    with smooth curved transitions at the junction points.
+    
+    Args:
+        inlet_path (VMobject): Path for inlet pipe.
+        branch_path (VMobject): Path for one parallel branch (A, B, or C).
+        outlet_path (VMobject): Path for outlet pipe.
+        
+    Returns:
+        VMobject: A single continuous path with smooth transitions.
+    """
+    all_points = []
+    
+    # Inlet: sample points up to junction
+    for alpha in np.arange(0, 1, 0.1):
+        all_points.append(inlet_path.point_from_proportion(alpha))
+    
+    # Branch: sample points along the branch
+    for alpha in np.arange(0, 1, 0.1):
+        all_points.append(branch_path.point_from_proportion(alpha))
+    
+    # Outlet: sample points from junction to end
+    for alpha in np.arange(0, 1, 0.1):
+        all_points.append(outlet_path.point_from_proportion(alpha))
+    
+    # Create smooth path through all points
+    streamline = VMobject()
+    streamline.set_points_as_corners(all_points)
+    
+    return streamline
+

@@ -1,25 +1,47 @@
 from manim import *
 
-def create_flow_label(flow_rate, position, pipe_name="Q"):
+def create_flow_label(pipe, flow_rate, pipe_name, direction=UP, buff=0.2):
     """
-    Creates a LaTeX label for flow rate.
+    Creates a LaTeX label for flow rate positioned next to the pipe.
     """
-    # Format: Q_A = 0.12 m^3/s
+    # Format: Q_{name}
     txt = MathTex(
-        f"Q_{{{pipe_name}}} = {flow_rate:.3f} \\, m^3/s",
-        font_size=20, # readable size
-        color=YELLOW
+        f"Q_{{{pipe_name}}}",
+        font_size=40, 
+        color=BLACK
     )
-    
-    # Add background for readability
-    bg = BackgroundRectangle(txt, fill_opacity=0.8, color=BLACK, buff=0.1)
-    label = VGroup(bg, txt)
-    label.move_to(position)
+
+    label = txt
+    label.next_to(pipe, direction=direction, buff=buff)
     
     return label
 
-def get_annotation_pos(pipe_path_mobject, offset=UP*0.5):
+def create_flow_arrow(pipe, direction=UP, buff=0.1):
     """
-    Gets a good position for the annotation (center of path + offset).
+    Creates a directional arrow indicating flow, positioned relative to the pipe.
+    By default places an arrow pointing RIGHT (standard flow) shifted by direction/buff.
     """
-    return pipe_path_mobject.get_center() + offset
+    # Create arrow pointing right
+    # Size tuning: small but visible
+    arrow = Arrow(start=LEFT, end=RIGHT, stroke_width=7, color=BLACK, max_tip_length_to_length_ratio=0.25)
+    
+    # Position relative to pipe
+    arrow.next_to(pipe, direction=direction, buff=buff)
+    
+    return arrow
+
+
+def create_head_label(head_value, position):
+    """
+    Creates a label for Hydraulic Head (H).
+    Format: H = 100.00 m
+    """
+    txt = MathTex(
+        f"H = {head_value:.2f} m",
+        font_size=24,
+        color=RED
+    )
+    # Add background rectangle for readability over lines/pipes
+    bg = BackgroundRectangle(txt, fill_opacity=0.7, color=WHITE, buff=0.1)
+    
+    return VGroup(bg, txt).move_to(position)
