@@ -1,17 +1,14 @@
 from manim import *
 from helpers.utils import load_config
-from helpers.geometry import NetworkMobject
-from helpers.physics import HardyCrossSolver
-from helpers.annotations import FlowLabels
+from helpers.geometry import create_network_mobjects
 
 class HardyCrossScene(Scene):
     def construct(self):
-        # TODO: Load configuration
-        # config = load_config("inputs.yaml")
+        # Load configuration
+        config = load_config("inputs.yaml")
         
-        # TODO: Initialize Network
-        # network = NetworkMobject(config)
-        # self.add(network)
+        # Initialize Network
+        network_group = create_network_mobjects(config)
+        self.add(network_group)
         
-        # TODO: Animate iterations
-        pass
+        self.wait(2)

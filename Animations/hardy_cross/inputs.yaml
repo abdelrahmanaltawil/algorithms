@@ -1,10 +1,60 @@
 # Hardy Cross Network Configuration
+# Based on the provided diagram
+
 network:
   nodes:
-    # Example: A: [0, 0]
+    # Top Row
+    1: [-5, 1.5, 0] 
+    2: [-3, 1.5, 0]
+    3: [0, 1.5, 0]
+    4: [3, 1.5, 0]
+    5: [5, 1.5, 0]
+    # Bottom Row
+    6: [-3, -1.5, 0]
+    7: [0, -1.5, 0]
+    8: [3, -1.5, 0]
+    # External points for inflows
+    IN_1: [-5, 3, 0] # For Pipe 1
+    IN_2: [5, 3, 0]  # For Pipe 4
+
   pipes:
-    # Example: AB: {length: 10, diameter: 0.5, roughness: 100}
-loops:
-  # Example: Loop1: [AB, BC, CA]
-fluid:
-  kinematic_viscosity: 1.0e-6
+    # Pipe ID: {start: NodeID, end: NodeID, ...}
+    # Vertical Inflows
+    1: {start: "IN_1", end: 1, label_offset: [0, 0.5, 0]}
+    2: {start: "IN_2", end: 5, label_offset: [0, 0.5, 0]}
+
+    # Horizontal Top
+    3: {start: 1, end: 2, label_offset: [0, 0.5, 0]} 
+    4: {start: 2, end: 3, label_offset: [0, 0.5, 0]}
+    5: {start: 3, end: 4, label_offset: [0, 0.5, 0]}
+    6: {start: 4, end: 5, label_offset: [0, 0.5, 0]}
+    
+    # Vertical
+    7: {start: 2, end: 6, label_offset: [-0.5, 0, 0]}
+    8: {start: 3, end: 7, label_offset: [-0.5, 0, 0]}
+    9: {start: 4, end: 8, label_offset: [-0.5, 0, 0]}
+    
+    # Horizontal Bottom
+    10: {start: 6, end: 7, label_offset: [0, 0.5, 0]}
+    11: {start: 7, end: 8, label_offset: [0, 0.5, 0]}
+
+  tanks:
+    # Tanks at inflow nodes
+    Tank1: {node: "IN_1", height: 3, width: 4, fill_level: 0.8}
+    Tank2: {node: "IN_2", height: 3, width: 4, fill_level: 0.6}
+
+  withdrawals:
+    # Consumption vectors (visual markers)
+    C1: {node: 1, direction: [-1, -1, 0]}
+    C2: {node: 2, direction: [1, -1, 0]}
+    C3: {node: 3, direction: [1, -1, 0]}
+    C4: {node: 4, direction: [1, -1, 0]}
+    C5: {node: 5, direction: [1, -1, 0]}
+    C6: {node: 6, direction: [1, -1, 0]}
+
+visuals:
+  node_radius: 0.3
+  pipe_stroke_width: 8
+  pipe_color: BLUE_E
+  node_color: WHITE
+  label_color: WHITE
