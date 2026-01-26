@@ -1,0 +1,53 @@
+project:
+  name: "Parallel Pipes Flow"
+  description: "Simulation of flow through three parallel pipes with different lengths and diameters."
+
+network:
+  nodes:
+    node_inlet_start: { id: 0, pos: [-6, 0, 0], type: "source" }
+    node_1: { id: 1, pos: [-1.5, 0, 0], type: "junction" }
+    node_2: { id: 2, pos: [1.5, 0, 0], type: "junction" }
+    node_out_end: { id: 5, pos: [6, 0, 0], type: "sink" }
+    
+  pipes:
+    # Inlet Pipe
+    pipe_inlet: 
+      id: "inlet"
+      start_node: 0
+      end_node: 1
+      length: 300 
+      diameter_mm: 800
+      type: "straight"
+
+    # Pipe A (Arc Up)
+    pipe_A:
+      id: "A"
+      start_node: 1
+      end_node: 2
+      length: 200 
+      diameter_mm: 500
+      type: "straight"
+      arc_angle: 0
+
+    # Outlet Pipe
+    pipe_outlet:
+      id: "outlet"
+      start_node: 2
+      end_node: 5
+      length: 300
+      diameter_mm: 800
+      type: "straight"
+
+display:
+  colors:
+    pipe_stroke: "#87CEEB"
+    pipe_fill: "#87CEEB"
+  scales:
+    pipe_width_factor: 0.02 # Scale diameter mm to screen units
+
+physics:
+  fluid:
+    total_flow_rate: 0.1 # m^3/s
+    kinematic_viscosity: 1.0e-6 # Water
+  gravity: 9.81
+  default_roughness: 0.0015 # mm

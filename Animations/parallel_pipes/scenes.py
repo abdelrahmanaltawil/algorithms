@@ -69,10 +69,7 @@ class ParallelPipesScene(Scene):
         fluid_body.set_z_index(1)
         
         # Animation Sequence:
-        # 1. Fluid fills the system (Blue)
         self.play(FadeIn(fluid_body), run_time=1)
-        
-        # 2. Walls appear "around" the fluid
         self.play(Create(walls), run_time=1.5)
 
         # --- Annotations & Physics Calcs ---
