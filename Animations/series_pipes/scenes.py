@@ -104,17 +104,7 @@ class SeriesPipesScene(Scene):
         flow_lbls = VGroup(flow_lbl_inlet, flow_lbl_A, flow_lbl_outlet)
         self.play(Create(flow_lbls), run_time=0.5)
 
-        # # Head Labels at Nodes
-        # for nid, val in node_heads.items():
-        #     if nid in nodes_mobs:
-        #         pos = nodes_mobs[nid].get_center()
-                
-        #         # Alternate up/down or just all Up? 
-        #         # All pipes are straight horizontal-ish.
-        #         label_offset = DOWN * 1.5
-                
-        #         head_lbl = create_head_label(val, pos + label_offset)
-        #         annotations_labels.add(head_lbl)
+
         
         self.play(FadeIn(annotations_labels))
 

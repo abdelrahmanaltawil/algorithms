@@ -1,33 +1,50 @@
-# Parallel Pipes Flow Animation
+# Series Pipes Flow Animation
 
-Manim animation of water flow through three parallel pipes with physics-based flow distribution.
+Manim animation visualizing fluid flow through a series of connected pipes with varying diameters, demonstrating fundamental fluid dynamics principles.
 
 ## Overview
 
-Visualizes a pipe system where flow splits through three parallel branches with different lengths and diameters, then converges. Uses streamline-based particles to show the flow distribution.
+The animation shows a single batch of fluid moving through a sequence: **Inlet (Large) → Pipe A (Small) → Outlet (Large)**. It highlights:
+1.  **Continuity Principle**: Velocity increases in narrower pipes ($A_1V_1 = A_2V_2$).
+2.  **Momentum Preservation**: Fluid exiting the narrow pipe maintains its high velocity briefly ("Jet Effect") before decelerating.
+3.  **Visual Clarity**: Explicit wall geometry, clean vertical joints, and batch particle flow.
 
 ## Structure
 
 ```
-parallel_pipes/
+series_pipes/
 ├── scenes.py           # Main animation scene
 ├── inputs.yaml         # Configuration (dimensions, physics)
 ├── manim.cfg           # Manim settings
 ├── helpers/
-│   ├── geometry.py     # Pipe/node visual generation
-│   ├── physics.py      # Flow distribution calculation
-│   ├── annotations.py  # Flow rate labels
+│   ├── geometry.py     # Pipe/node visual construction
+│   ├── physics.py      # Head and velocity calculations
+│   ├── annotations.py  # Labels and arrows
 │   └── utils.py        # Config loader
 └── README.md
 ```
 
-## Physics
+## Configuration
 
-- **Flow Distribution:** $Q_i \propto \sqrt{D_i^5 / L_i}$ (equal head loss)
-- **Velocity Profile:** Parabolic $v = v_{max}(1 - r^2/R^2)$
+The simulation parameters are defined in `inputs.yaml`:
+
+-   **Network**: Node positions and pipe dimensions (Length, Diameter).
+-   **Physics**: Fluid properties (Flow Rate, Viscosity).
+-   **Display**: Colors and scaling factors.
+
+Modify `inputs.yaml` to change the system topology or flow conditions without touching the code.
+
+## Physics Logic
+
+-   **Variable Speed**: Particle velocity is updated dynamically based on the current pipe section's diameter.
+-   **Momentum Decay**: Outlet velocity is modeled as:
+    $$V(\alpha) = V_{slow} + (V_{fast} - V_{slow}) \cdot e^{-(\alpha - \alpha_0) / \tau}$$
+    simulating the gradual dissipation of kinetic energy.
 
 ## Usage
 
+Run the animation using Manim:
+
 ```bash
-manim -pql scenes.py ParallelPipesScene
+manim -pql scenes.py SeriesPipesScene
 ```
