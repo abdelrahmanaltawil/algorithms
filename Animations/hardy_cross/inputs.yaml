@@ -1,0 +1,10 @@
+# Hardy Cross Network Configuration
+network:
+  nodes:
+    # Example: A: [0, 0]
+  pipes:
+    # Example: AB: {length: 10, diameter: 0.5, roughness: 100}
+loops:
+  # Example: Loop1: [AB, BC, CA]
+fluid:
+  kinematic_viscosity: 1.0e-6
