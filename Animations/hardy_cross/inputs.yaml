@@ -42,11 +42,11 @@ network:
     # Loop ID: [ordered list of Pipe IDs]
     # For automated traversal, we might need direction relative to loop (clockwise).
     # Simple list for now; logic can determine sign based on node connectivity or manual sign.
-    Loop1: [4, 7, 10, 8] # Top-Left quadrant roughly? No.
+    Loop 1: [4, 7, 10, 8] # Top-Left quadrant roughly? No.
     # Nodes: 2 -> 3 -> 7 -> 6 -> 2
     # Pipes: 4(2->3), 8(3->7), 10(6->7), 7(2->6)
     # Loop direction Clockwise: 2->3 (Pipe 4 +), 3->7 (Pipe 8 +), 7->6 (Pipe 10 -), 6->2 (Pipe 7 -)
-    Loop2: [5, 9, 11, 8] # Top-Right quadrant
+    Loop 2: [5, 9, 11, 8] # Top-Right quadrant
     # Nodes: 3 -> 4 -> 8 -> 7 -> 3
     # Pipes: 5(3->4), 9(4->8), 11(7->8), 8(3->7)
     # Clockwise: 3->4 (Pipe 5 +), 4->8 (Pipe 9 +), 8->7 (Pipe 11 -), 7->3 (Pipe 8 -)

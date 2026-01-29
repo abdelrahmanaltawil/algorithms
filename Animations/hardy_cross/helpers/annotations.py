@@ -55,7 +55,7 @@ def create_flow_arrows(config, network_group, pipe_map):
         
     return arrows
 
-def create_flow_labels(config, pipe_map):
+def create_flow_labels(config, pipe_map, values=True):
     """
     Creates Text mobjects (MathTex) for flow values.
     """
@@ -70,14 +70,18 @@ def create_flow_labels(config, pipe_map):
         flow = data.get('initial_flow', 0)
         # Display absolute value for magnitude, direction is shown by arrow
         flow_mag = abs(flow)
-        
-        label_text = MathTex(f"Q = {flow_mag}", color=visuals['label_color'])
+
+        if values:
+            label_text = MathTex(f"{flow_mag:.2f}", color=visuals['label_color'])
+        else:
+            label_text = MathTex(f"Q_{{pipe_id}}", color=visuals['label_color'])
         label_text.scale(0.7)
         
         # Position label
         # Use label_offset from config if available, relative to midpoint
-        offset = np.array(data.get('label_offset', [0, 0, 0]))
-        offset[offset != 0] = math.copysign(abs(offset[offset != 0]) + 0.3, offset[offset != 0])
+        offset = np.array(data.get('label_offset', [0, 0, 0]), dtype=float)
+        # Add 0.3 to the non-zero component's magnitude, preserving sign
+        offset[offset != 0] = offset[offset != 0] + np.sign(offset[offset != 0]) * 0.3
         
         # Match the label's rotation to the line's current angle
         label_text.rotate(pipe_line.get_angle())
@@ -105,18 +109,25 @@ def create_loop_path(config, pipes_map, loop_id):
             highlight = original_pipe.copy()
             highlight.set_stroke(color=ORANGE, width=12, opacity=0.5)
             loop_group.add(highlight)
+
+    # add loop label
+    loop_label = Text(f"{loop_id}", color=ORANGE, slant=ITALIC)
+    loop_label.scale(2)
+    loop_label.to_edge(DOWN)
+
+    loop_group.add(loop_label)
             
     return loop_group
 
-def create_correction_formula():
+def create_correction_formula(network_group):
     """
     Returns a MathTex object for the Hardy Cross correction formula.
     """
     formula = MathTex(
-        r"\Delta Q = -\frac{\sum r Q |Q|^{n-1}}{\sum n r |Q|^{n-1}}",
+        r"\Delta Q = \frac{E - \sum_i H_i}{n\sum_i \left(\frac{H_i}{Q_i}\right)}",
         color=BLACK
     )
-    formula.scale(1.2)
-    formula.to_edge(DOWN)
+    formula.scale(1.5)
+    formula.next_to(network_group, RIGHT, buff=4)
 
     return formula
