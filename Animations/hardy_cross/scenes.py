@@ -18,12 +18,10 @@ class HardyCrossScene(MovingCameraScene):
         
         # Preprossing: Show system
         # Create arrows and labels
-        flow_arrows = create_flow_arrows(config, network_group, pipes_map)
         flow_labels = create_flow_labels(config, pipes_map, values=False)
         
         self.play(Succession(
             Write(flow_labels),
-            Create(flow_arrows),
             run_time=2
         ))
         self.wait(1)
@@ -52,111 +50,60 @@ class HardyCrossScene(MovingCameraScene):
         )
 
         # create side page for algorithm steps
-        side_page = Rectangle(
-            width=self.camera.frame.get_width() * 0.4,
-            height=self.camera.frame.get_height()*0.8,
-            color=BLACK,
-            fill_opacity=0.5
-        ).next_to(network_group, RIGHT, buff=2)
+        from helpers.annotations import (
+            create_side_page, create_algorithm_title, 
+            create_step_1_text, create_step_2_text, create_step_3_text
+        )
+        
+        side_page = create_side_page(self.camera.frame, network_group)
         self.play(Create(side_page))
         self.wait(1)
 
-        # Define layout constants relative to side_page
-        left_anchor = side_page.get_left()
-        top_anchor = side_page.get_top()
-        margin = 0.5 * RIGHT
-        indent = 1.0 * RIGHT
-        line_height = 0.8 * DOWN
-
         # Hardy Cross Algorithm Title
-        title = Text("Hardy Cross Algorithm", color=BLACK, slant=ITALIC).scale(1.2)
-        # Position: Top of page + down margin + left margin
-        title.move_to(top_anchor - left_anchor + 1.0*DOWN + 3*RIGHT, aligned_edge=LEFT)
+        title = create_algorithm_title(side_page)
         self.play(Write(title))
         self.wait(1)
 
         # Step 1: initial guess
-        step_1_title = Text("Step 1: Initial Guess", color=BLACK, slant=ITALIC).scale(0.8)
-        # Position: Below main title
-        step_1_title.next_to(title, DOWN, buff=0.8, aligned_edge=LEFT)
+        step_1_title = create_step_1_text(side_page, title)
         self.play(Write(step_1_title))
         self.wait(1)
         
         flow_initial_guess = create_flow_labels(config, pipes_map, values=True)
+        flow_arrows_guess = create_flow_arrows(config, network_group, pipes_map)
         self.play(ReplacementTransform(flow_labels, flow_initial_guess))
-        self.play(Indicate(flow_initial_guess, color=YELLOW))
+        self.play(Create(flow_arrows_guess))
+        self.play(Indicate(VGroup(flow_initial_guess, flow_arrows_guess), color=YELLOW))
         self.wait(1)
 
         # Step 2: Calculate Energy
-        step_2_title = Text("Step 2: Calculate Energy", color=BLACK, slant=ITALIC).scale(0.8)
-        # Position: Below Step 1 title (space for Step 1 content if any, or fixed spacing)
-        step_2_title.next_to(step_1_title, DOWN, buff=1.0, aligned_edge=LEFT)
-        
-        self.play(Write(step_2_title))
-        self.wait(1)
-
-        # Use align* environment for better equation alignment
-        energy_equation_1 = MathTex(
-            r"E &= \sum_i H_i", 
-            tex_environment="align*",
-            color=BLACK
-        ).scale(1.0)
-        
-        # Indent equation from the title
-        # Position: Below title combined with indent
-        energy_equation_1.next_to(step_2_title, DOWN, buff=0.3, aligned_edge=LEFT)
-        energy_equation_1.shift(indent)
-        
-        self.play(Write(energy_equation_1))
-        self.wait(1)
-        
-        energy_equation_2 = MathTex(
-            r"\text{where } H_i &= K_i Q_i^n", 
-            tex_environment="align*",
-            color=BLACK
-        ).scale(1.0)
-        
-        # Position "Where" clause below, aligned left with the first equation
-        energy_equation_2.next_to(energy_equation_1, DOWN, buff=0.2, aligned_edge=LEFT)
-        
-        self.play(Write(energy_equation_2))
+        step_2_group = create_step_2_text(side_page, step_1_title)
+        # Animate elements sequentially
+        for mobj in step_2_group:
+            self.play(Write(mobj))
+            self.wait(0.5)
         self.wait(1)
 
         # Step 3: Iterative Correction
-        step_3_title = Text("Step 3: Iterative Correction", color=BLACK, slant=ITALIC).scale(0.8)
-        # Position: Below Step 2 title (space for Step 2 content if any, or fixed spacing)
-        step_3_title.next_to(energy_equation_2, DOWN, buff=1.0, aligned_edge=LEFT)
-        step_3_title.shift(-indent)
-
+        # step_2_group[-1] is the last equation "where H = ..."
+        step_3_group = create_step_3_text(side_page, step_2_group[-1])
+        
+        # Elements: [Title, Formula, DeltaQLabel]
+        step_3_title = step_3_group[0]
+        correction_formula = step_3_group[1]
+        delta_q_label = step_3_group[2]
+        
+        # Write title and formula
         self.play(Write(step_3_title))
-        self.wait(1)
-        
-        # Correction Formula
-        correction_formula = MathTex(
-            r"\Delta Q = - \frac{\sum H_i}{n \sum_i |H_i/Q_i|}",
-            color=BLACK
-        ).scale(1.0)
-        
-        # Indent equation
-        correction_formula.next_to(step_3_title, DOWN, buff=0.3, aligned_edge=LEFT)
-        correction_formula.shift(indent)
-        
+        self.wait(0.5)
         self.play(Write(correction_formula))
         self.wait(1)
+        self.play(Write(delta_q_label))
         
         # # Iteration Logic
         # from helpers.physics import HardyCrossSolver
-        # # from helpers.annotations import create_loop_path # Already imported globally
 
         # solver = HardyCrossSolver(config)
-        
-        # # Label to show current loop's correction value
-        # delta_q_label = MathTex(r"\Delta Q =", color=BLACK).scale(0.8)
-        # # Position below the formula
-        # delta_q_label.next_to(correction_formula, DOWN, buff=0.5, aligned_edge=LEFT)
-        # delta_q_label.shift(0.5 * RIGHT) # Small indent for result
-        
-        # self.play(Write(delta_q_label))
         
         # num_iterations = 2 
         

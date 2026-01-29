@@ -131,3 +131,91 @@ def create_correction_formula(network_group):
     formula.next_to(network_group, RIGHT, buff=4)
 
     return formula
+
+def create_side_page(camera_frame, network_group):
+    """
+    Creates the background rectangle for the side page document.
+    """
+    side_page = Rectangle(
+        width=camera_frame.get_width() * 0.4,
+        height=camera_frame.get_height() * 0.8,
+        color=BLACK,
+        fill_opacity=0.5
+    ).next_to(network_group, RIGHT, buff=2)
+    return side_page
+
+def get_document_anchors(side_page):
+    """
+    Returns a dictionary of anchor points and standard margins.
+    """
+    return {
+        'left': side_page.get_left(),
+        'top': side_page.get_top(),
+        'margin': 0.5 * RIGHT,
+        'indent': 1.0 * RIGHT
+    }
+
+def create_algorithm_title(side_page):
+    anchors = get_document_anchors(side_page)
+    title = Text("Hardy Cross Algorithm", color=BLACK, slant=ITALIC).scale(1.2)
+    # Position: Top of page + down margin + left margin
+    title.move_to(anchors['top'] - anchors['left'] + 1.0*DOWN + 3*RIGHT, aligned_edge=LEFT)
+    return title
+
+def create_step_1_text(side_page, prev_mobject):
+    step_1_title = Text("Step 1: Initial Guess", color=BLACK, slant=ITALIC).scale(0.8)
+    # Position: Below previous object
+    step_1_title.next_to(prev_mobject, DOWN, buff=0.8, aligned_edge=LEFT)
+    return step_1_title
+
+def create_step_2_text(side_page, prev_mobject):
+    anchors = get_document_anchors(side_page)
+    
+    step_2_title = Text("Step 2: Calculate Energy", color=BLACK, slant=ITALIC).scale(0.8)
+    step_2_title.next_to(prev_mobject, DOWN, buff=1.0, aligned_edge=LEFT)
+    
+    energy_equation_1 = MathTex(
+        r"E &= \sum_i H_i", 
+        tex_environment="align*",
+        color=BLACK
+    ).scale(1.0)
+    energy_equation_1.next_to(step_2_title, DOWN, buff=0.3, aligned_edge=LEFT)
+    energy_equation_1.shift(anchors['indent'])
+    
+    energy_equation_2 = MathTex(
+        r"\text{where } H_i &= K_i Q_i^n", 
+        tex_environment="align*",
+        color=BLACK
+    ).scale(1.0)
+    energy_equation_2.next_to(energy_equation_1, DOWN, buff=0.2, aligned_edge=LEFT)
+    
+    # Return as a VGroup for easy iteration, but also keeping them accessible if needed
+    return VGroup(step_2_title, energy_equation_1, energy_equation_2)
+
+def create_step_3_text(side_page, prev_mobject):
+    anchors = get_document_anchors(side_page)
+    
+    step_3_title = Text("Step 3: Iterative Correction", color=BLACK, slant=ITALIC).scale(0.8)
+    step_3_title.next_to(prev_mobject, DOWN, buff=1.0, aligned_edge=LEFT)
+    # Undo indent effect if prev_mobject was indented (like equation), 
+    # but next_to aligns edge. If prev was indented, LEFT edge is indented.
+    # We want titles aligned to main margin.
+    # We can force alignment with step_3_title.move_to(..., aligned_edge=LEFT) preserving X from Title 1?
+    # Simple fix: Shift back if needed, or align to side_page left + margin.
+    # User's previous manual code: `step_3_title.shift(-indent)` after `next_to`.
+    # Let's align explicitly to the margin to be safe.
+    
+    step_3_title.set_x((anchors['left'] + anchors['margin'])[0] + step_3_title.width/2)
+
+    correction_formula = MathTex(
+        r"\Delta Q = - \frac{\sum H_i}{n \sum_i |H_i/Q_i|}",
+        color=BLACK
+    ).scale(1.0)
+    correction_formula.next_to(step_3_title, DOWN, buff=0.3, aligned_edge=LEFT)
+    correction_formula.shift(anchors['indent'])
+    
+    delta_q_label = MathTex(r"\Delta Q =", color=BLACK).scale(0.8)
+    delta_q_label.next_to(correction_formula, DOWN, buff=0.5, aligned_edge=LEFT)
+    delta_q_label.shift(0.5 * RIGHT) # Small extra indent for result
+
+    return VGroup(step_3_title, correction_formula, delta_q_label)
