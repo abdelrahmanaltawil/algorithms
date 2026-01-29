@@ -4,7 +4,7 @@ import numpy as np
 def create_network_mobjects(config):
     """
     Function to create Mobjects for the pipe network (nodes and pipes only).
-    Returns a VGroup containing all elements.
+    Returns a VGroup containing all elements, and dictionaries for nodes, pipes, and tanks.
     """
     network_group = VGroup()
     
@@ -29,7 +29,7 @@ def create_network_mobjects(config):
         network_group.add(node)
 
         
-    return network_group
+    return network_group, file_nodes, file_pipes, file_tanks
 
 def get_node_pos(config, node_id):
     raw_pos = config['network']['nodes'][node_id]

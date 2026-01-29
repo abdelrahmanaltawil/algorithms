@@ -4,15 +4,15 @@
 network:
   nodes:
     # Top Row
-    1: [-5, 1.5, 0] 
-    2: [-3, 1.5, 0]
-    3: [0, 1.5, 0]
-    4: [3, 1.5, 0]
-    5: [5, 1.5, 0]
+    1: [-5, 0, 0] 
+    2: [-3, 0, 0]
+    3: [0, 0, 0]
+    4: [3, 0, 0]
+    5: [5, 0, 0]
     # Bottom Row
-    6: [-3, -1.5, 0]
-    7: [0, -1.5, 0]
-    8: [3, -1.5, 0]
+    6: [-3, -3, 0]
+    7: [0, -3, 0]
+    8: [3, -3, 0]
     # External points for inflows
     IN_1: [-5, 3, 0] # For Pipe 1
     IN_2: [5, 3, 0]  # For Pipe 4
@@ -20,23 +20,36 @@ network:
   pipes:
     # Pipe ID: {start: NodeID, end: NodeID, ...}
     # Vertical Inflows
-    1: {start: "IN_1", end: 1, label_offset: [0, 0.5, 0]}
-    2: {start: "IN_2", end: 5, label_offset: [0, 0.5, 0]}
+    1: {start: "IN_1", end: 1, label_offset: [0.4, 0, 0], initial_flow: 100, resistance: 1}
+    2: {start: "IN_2", end: 5, label_offset: [-0.4, 0, 0], initial_flow: 80, resistance: 1}
 
     # Horizontal Top
-    3: {start: 1, end: 2, label_offset: [0, 0.5, 0]} 
-    4: {start: 2, end: 3, label_offset: [0, 0.5, 0]}
-    5: {start: 3, end: 4, label_offset: [0, 0.5, 0]}
-    6: {start: 4, end: 5, label_offset: [0, 0.5, 0]}
+    3: {start: 1, end: 2, label_offset: [0, -0.4, 0], initial_flow: 60, resistance: 3} 
+    4: {start: 2, end: 3, label_offset: [0, -0.4, 0], initial_flow: 30, resistance: 1}
+    5: {start: 3, end: 4, label_offset: [0, -0.4, 0], initial_flow: 10, resistance: 1}
+    6: {start: 4, end: 5, label_offset: [0, -0.4, 0], initial_flow: -40, resistance: 3} # Negative to show direction matching others or balance
     
-    # Vertical
-    7: {start: 2, end: 6, label_offset: [-0.5, 0, 0]}
-    8: {start: 3, end: 7, label_offset: [-0.5, 0, 0]}
-    9: {start: 4, end: 8, label_offset: [-0.5, 0, 0]}
+    # Vertical connecting
+    7: {start: 2, end: 6, label_offset: [0.4, 0, 0], initial_flow: 30, resistance: 2}
+    8: {start: 3, end: 7, label_offset: [-0.4, 0, 0], initial_flow: 20, resistance: 5}
+    9: {start: 4, end: 8, label_offset: [-0.4, 0, 0], initial_flow: 50, resistance: 2}
     
     # Horizontal Bottom
-    10: {start: 6, end: 7, label_offset: [0, 0.5, 0]}
-    11: {start: 7, end: 8, label_offset: [0, 0.5, 0]}
+    10: {start: 6, end: 7, label_offset: [0, 0.4, 0], initial_flow: 30, resistance: 2}
+    11: {start: 7, end: 8, label_offset: [0, 0.4, 0], initial_flow: 50, resistance: 2}
+
+  loops:
+    # Loop ID: [ordered list of Pipe IDs]
+    # For automated traversal, we might need direction relative to loop (clockwise).
+    # Simple list for now; logic can determine sign based on node connectivity or manual sign.
+    Loop1: [4, 7, 10, 8] # Top-Left quadrant roughly? No.
+    # Nodes: 2 -> 3 -> 7 -> 6 -> 2
+    # Pipes: 4(2->3), 8(3->7), 10(6->7), 7(2->6)
+    # Loop direction Clockwise: 2->3 (Pipe 4 +), 3->7 (Pipe 8 +), 7->6 (Pipe 10 -), 6->2 (Pipe 7 -)
+    Loop2: [5, 9, 11, 8] # Top-Right quadrant
+    # Nodes: 3 -> 4 -> 8 -> 7 -> 3
+    # Pipes: 5(3->4), 9(4->8), 11(7->8), 8(3->7)
+    # Clockwise: 3->4 (Pipe 5 +), 4->8 (Pipe 9 +), 8->7 (Pipe 11 -), 7->3 (Pipe 8 -)
 
   tanks:
     # Tanks at inflow nodes
@@ -55,6 +68,6 @@ network:
 visuals:
   node_radius: 0.3
   pipe_stroke_width: 8
-  pipe_color: BLUE_E
-  node_color: WHITE
-  label_color: WHITE
+  pipe_color: BLACK
+  node_color: BLACK
+  label_color: BLACK
